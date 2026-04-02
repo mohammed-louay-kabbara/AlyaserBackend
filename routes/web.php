@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -33,3 +34,5 @@ Route::get('/export-real-invoice', function () {
         'Content-Type' => 'text/plain; charset=UTF-8',
     ]);
 });
+
+Route::get('/activated/{id}',[AuthController::class,'activated']);

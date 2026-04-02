@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone');
             $table->string('address');
             $table->integer('role')->default(2);
+            $table->boolean('activated')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
