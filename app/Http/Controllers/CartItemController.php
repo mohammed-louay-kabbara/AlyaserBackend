@@ -16,23 +16,20 @@ class CartItemController extends Controller
         $cartItems = cart_item::where('user_id', Auth::id())
             ->with('product')
             ->get();
-            
         return response()->json($cartItems, 200);
     }
 
-    // إضافة منتج للسلة
     public function store(Request $request)
     {
+        
         $request->validate([
             'product_id'    => 'required|exists:products,id',
-            'purchase_type' => 'required|in:wholesale,retail',
-            'quantity'      => 'required|numeric|min:0.1',
+            'purchase_type' => 'required',
         ]);
 
         $product = Product::findOrFail($request->product_id);
 
-        // تحديد السعر بناءً على نوع الشراء المختارة
-        $price = ($request->purchase_type == 'wholesale') 
+        $price = ($request->purchase_type == 'طرد') 
                  ? $product->wholesale_price 
                  : $product->retail_price;
 
@@ -44,7 +41,6 @@ class CartItemController extends Controller
                 'purchase_type' => $request->purchase_type
             ],
             [
-                'quantity' => $request->quantity,
                 'price_at_addition' => $price // تثبيت السعر اللحظي
             ]
         );
