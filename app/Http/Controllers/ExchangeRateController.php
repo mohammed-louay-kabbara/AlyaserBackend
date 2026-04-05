@@ -22,7 +22,7 @@ class ExchangeRateController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'currency_name' => 'required|string|unique:exchange_rates',
+            'currency_name' => 'required|',
             'rate'          => 'required|numeric',
             'is_default'    => 'boolean'
         ]);

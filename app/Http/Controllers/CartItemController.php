@@ -21,11 +21,12 @@ class CartItemController extends Controller
 
     public function store(Request $request)
     {
-        
+   
         $request->validate([
             'product_id'    => 'required|exists:products,id',
             'purchase_type' => 'required',
         ]);
+
 
         $product = Product::findOrFail($request->product_id);
 

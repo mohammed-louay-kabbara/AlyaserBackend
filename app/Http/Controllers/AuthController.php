@@ -46,8 +46,6 @@ class AuthController extends Controller
                 'error' => 'لم يتم تفعيل حسابك بعد'
             ], 403);
         }
-        
-
         return $this->respondWithToken($token);
     }
     public function activated($id)
@@ -58,9 +56,6 @@ class AuthController extends Controller
         return response()->json(['تم تنشيط الحساب بنجاح'], 200,);
     }
 
-    /**
-     * إنشاء حساب جديد
-     */
     public function register(Request $request)
     {
         // 2. تم إصلاح الخطأ المطبعي (string) في حقل الهاتف وإضافة التحقق للعنوان
@@ -114,9 +109,52 @@ class AuthController extends Controller
     public function me()
     {
         return response()->json([
-            'status' => true,
             'user' => auth()->user()
         ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        // جلب المستخدم الحالي من التوكن
+        $user = Auth::user();
+
+        // 1. قواعد التحقق (Validation)
+        $request->validate([
+            'name'         => 'sometimes|required|string|max:255',
+            'address'      => 'nullable|string',
+            // استثناء المستخدم الحالي من شرط عدم التكرار
+            'email'        => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'phone'        => 'sometimes|required|string|unique:users,phone,' . $user->id,
+            // التحقق من كلمات المرور (اختياري، يطلب فقط إذا تم إرسال كلمة مرور جديدة)
+            'old_password' => 'required_with:new_password',
+            'new_password' => 'nullable|string|min:6',
+        ]);
+
+        // 2. تحديث كلمة المرور (إذا طلب المستخدم ذلك)
+        if ($request->filled('new_password')) {
+            // التحقق من مطابقة كلمة المرور القديمة
+            if (!Hash::check($request->old_password, $user->password)) {
+                return response()->json([
+                    'message' => 'كلمة المرور القديمة غير صحيحة'
+                ], 400); // 400 Bad Request
+            }
+            // تشفير وتحديث كلمة المرور الجديدة
+            $user->password = Hash::make($request->new_password);
+        }
+
+        // 3. تحديث البيانات الأساسية (نستخدم filled للتأكد من إرسال الحقل)
+        if ($request->filled('name'))    $user->name = $request->name;
+        if ($request->filled('email'))   $user->email = $request->email;
+        if ($request->filled('phone'))   $user->phone = $request->phone;
+        if ($request->has('address'))    $user->address = $request->address; // has تسمح بتمرير قيمة فارغة (null)
+
+        // 4. حفظ التغييرات في قاعدة البيانات
+        $user->save();
+
+        return response()->json([
+            'message' => 'تم تحديث الملف الشخصي بنجاح',
+            'user'    => $user
+        ], 200);
     }
 
     /**
