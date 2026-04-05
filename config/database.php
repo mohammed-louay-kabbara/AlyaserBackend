@@ -111,6 +111,18 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
         ],
+        'ameen' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_AMEEN_HOST', 'localhost'),
+            'port' => env('DB_AMEEN_PORT', '1433'),
+            'database' => env('DB_AMEEN_DATABASE', 'Alameen2026'),
+            'username' => env('DB_AMEEN_USERNAME', 'sa'),
+            'password' => env('DB_AMEEN_PASSWORD', 'alyaser2026;'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
     ],
 
