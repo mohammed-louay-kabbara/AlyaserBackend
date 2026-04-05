@@ -97,7 +97,6 @@ return [
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
-
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),
@@ -111,19 +110,6 @@ return [
             'prefix_indexes' => true,
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
-        ],
-
-        'ameen' => [
-            'driver' => 'sqlsrv',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_AMEEN_HOST', 'localhost'),
-            'port' => env('DB_AMEEN_PORT', '1433'),
-            'database' => env('DB_AMEEN_DATABASE', 'AmnDb001'),
-            'username' => env('DB_AMEEN_USERNAME', ''),
-            'password' => env('DB_AMEEN_PASSWORD', ''),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
         ],
 
     ],
