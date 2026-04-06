@@ -36,3 +36,4 @@ Route::post('add_order', [OrderController::class,'store']);
 Route::get('get_order', [OrderController::class,'index']);
 Route::get('order_details/{id}', [OrderController::class,'Order_details']);
 Route::put('/profile/update', [AuthController::class, 'updateProfile']);
+Route::get('/activated/{id}',[AuthController::class,'activated']);
