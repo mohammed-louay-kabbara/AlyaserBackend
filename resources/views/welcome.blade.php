@@ -99,7 +99,7 @@
 
     <div class="login-card">
         <div class="logo-container">
-            <img src="logo.png" alt="شعار الياسر AL YASER">
+            <img src="{{ asset('login.png') }}" alt="شعار الياسر AL YASER">
         </div>
 
         <form action="#" method="POST">
