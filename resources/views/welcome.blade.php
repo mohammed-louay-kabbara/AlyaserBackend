@@ -42,7 +42,7 @@
         }
 
         .logo-container img {
-            max-width: 180px; /* يمكنك تعديل الحجم بما يتناسب مع دقة الشعار */
+            max-width: auto; /* يمكنك تعديل الحجم بما يتناسب مع دقة الشعار */
             height: auto;
         }
 
