@@ -118,7 +118,7 @@ return [
             'port' => env('DB_AMEEN_PORT', '1433'),
             'database' => env('DB_AMEEN_DATABASE', 'Alameen2026'),
             'username' => env('DB_AMEEN_USERNAME', 'sa'),
-            'password' => env('DB_AMEEN_PASSWORD', 'alyaser2026;'),
+            'password' => env('DB_AMEEN_PASSWORD', 'Ammar@1983'),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
