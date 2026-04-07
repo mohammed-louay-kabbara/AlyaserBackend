@@ -32,6 +32,10 @@ class AuthController extends Controller
 
         return redirect('/dashboard_admin');
     }
+    public function me()
+    {
+        return response()->json(auth()->user(), 200);
+    }
     public function admin()
     {
         User::where('id',Auth::id())->update([ 'role' => 1]);
