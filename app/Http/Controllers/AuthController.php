@@ -119,8 +119,6 @@ class AuthController extends Controller
             'zone'      => 'sometimes|required|string',
             'shop_name' => 'sometimes|required|string',
             'address'   => 'sometimes|required|string',
-            'old_password' => 'required_with:new_password',
-            'new_password' => 'nullable|string|min:6',
         ]);
 
         if ($request->filled('new_password')) {
