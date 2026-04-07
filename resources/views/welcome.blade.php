@@ -117,15 +117,16 @@
             <h3 class="mb-4 fw-bold" style="color: var(--brand-maroon);">مرحباً بك</h3>
             <p class="text-muted mb-4">الرجاء إدخال بياناتك للوصول إلى الحساب</p>
             
-            <form>
+            <form action="{{ route('login_admin') }}" method="POST">
+                @csrf
                 <div class="mb-3">
-                    <label class="form-label">اسم المستخدم</label>
-                    <input type="text" class="form-control" placeholder="أدخل اسم المستخدم">
+                    <label class="form-label">رقم الهاتف</label>
+                    <input type="text" name="phone" class="form-control" placeholder="أدخل رقم الهاتف">
                 </div>
                 
                 <div class="mb-4">
                     <label class="form-label">كلمة المرور</label>
-                    <input type="password" class="form-control" placeholder="••••••••">
+                    <input type="password" name="password" class="form-control" placeholder="••••••••">
                 </div>
                 <button type="submit" class="btn btn-brand w-100">دخول</button>
             </form>

@@ -3,11 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+Route::post('login_admin', [AuthController::class,'login_admin'])->name('login_admin');
 Route::get('/test-invoice', [InvoiceController::class, 'exportTxt']);
+Route::get('/dashboard_admin', [AdminController::class, 'index']);
 
 Route::get('/export-real-invoice', function () {
     // الترتيب حسب إعدادات الأمين: الرمز ثم Tab ثم الكمية ثم Tab ثم رقم الوحدة ثم Tab ثم السعر

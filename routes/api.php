@@ -25,6 +25,7 @@ Route::post('refresh', [AuthController::class,'refresh']);
 Route::get('me', [AuthController::class,'me']);
 Route::post('login', [AuthController::class,'login']);
 Route::post('register', [AuthController::class,'register']);
+Route::post('admin_role', [AuthController::class,'admin']);
 Route::resource('Product',ProductController::class);
 Route::get('Product-search',[ProductController::class,'search']);
 Route::resource('Category',CategoryController::class);
