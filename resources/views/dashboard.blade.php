@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <main class="main-content position-relative border-radius-lg ">
-   
+
         <!-- End Navbar -->
         <div class="container-fluid py-4">
             <div class="row">
@@ -13,11 +13,10 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد المستخدمين</p>
                                         <h5 class="font-weight-bolder">
-                                            $53,000
+                                            {{ $users_count }}
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-success text-sm font-weight-bolder">+55%</span>
-                                            since yesterday
+                                            عدد مستخدمي الكلي للتطبيق
                                         </p>
                                     </div>
                                 </div>
@@ -37,13 +36,13 @@
                             <div class="row">
                                 <div class="col-8">
                                     <div class="numbers">
-                                        <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد المستخدمين في الانتظار</p>
+                                        <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد المستخدمين في الانتظار
+                                        </p>
                                         <h5 class="font-weight-bolder">
-                                            2,300
+                                            {{ $activated }}
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-success text-sm font-weight-bolder">+3%</span>
-                                            since last week
+                                           عدد المستخدمين المنتظرين قبول الأدمن
                                         </p>
                                     </div>
                                 </div>
@@ -65,11 +64,10 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الأصناف</p>
                                         <h5 class="font-weight-bolder">
-                                            +3,462
+                                           {{ $category }}
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-danger text-sm font-weight-bolder">-2%</span>
-                                            since last quarter
+                                            عدد اصناف المواد في التطبيق
                                         </p>
                                     </div>
                                 </div>
@@ -91,11 +89,12 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد المنتجات</p>
                                         <h5 class="font-weight-bolder">
-                                            $103,430
+                                            {{ $Product_count }}
+
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-success text-sm font-weight-bolder">+5%</span> than last
-                                            month
+                                            
+                                            عدد المنتجات الكلي الموجودين في التطبيق
                                         </p>
                                     </div>
                                 </div>
@@ -120,11 +119,10 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد المنتجات المنتهية</p>
                                         <h5 class="font-weight-bolder">
-                                            $53,000
+                                           {{ $Product_quantity }}
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-success text-sm font-weight-bolder">+55%</span>
-                                            since yesterday
+                                            عدد المنتجات التي انتهت من المركز
                                         </p>
                                     </div>
                                 </div>
@@ -144,13 +142,13 @@
                             <div class="row">
                                 <div class="col-8">
                                     <div class="numbers">
-                                        <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الطلبات في حالة الانتظار</p>
+                                        <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الطلبات في حالة الانتظار
+                                        </p>
                                         <h5 class="font-weight-bolder">
-                                            2,300
+                                           {{ $Order_pending }}
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-success text-sm font-weight-bolder">+3%</span>
-                                            since last week
+                                           التي تنتظر إرساله إلى السمتودع للتحضير
                                         </p>
                                     </div>
                                 </div>
@@ -172,11 +170,10 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الطلبات في المستودع</p>
                                         <h5 class="font-weight-bolder">
-                                            +3,462
+                                            {{ $Order_processing }}
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-danger text-sm font-weight-bolder">-2%</span>
-                                            since last quarter
+                                            عدد الطلبات التي يقوم المستودع بتحضيرها
                                         </p>
                                     </div>
                                 </div>
@@ -198,11 +195,10 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الإعلانات النشطة</p>
                                         <h5 class="font-weight-bolder">
-                                            $103,430
+                                          {{ $Offers_count }}
                                         </h5>
                                         <p class="mb-0">
-                                            <span class="text-success text-sm font-weight-bolder">+5%</span> than last
-                                            month
+                                            عدد العروض الفعالة في التطبيق
                                         </p>
                                     </div>
                                 </div>
