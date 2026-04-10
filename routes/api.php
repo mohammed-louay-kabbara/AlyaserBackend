@@ -22,6 +22,7 @@ Route::group([
 });
 
 Route::post('logout', [AuthController::class,'logout']);
+Route::post('fcm_token', [AuthController::class,'fcm_token']);
 Route::post('sendPushNotification', [NotificationController::class,'sendPushNotification']);
 Route::post('refresh', [AuthController::class,'refresh']);
 Route::get('me', [AuthController::class,'me']);

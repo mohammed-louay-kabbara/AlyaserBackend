@@ -12,15 +12,13 @@ class NotificationController extends Controller
 {
     public function sendPushNotification(Request $request)
     {
-
     $token="dBrx1XnKTZ-Qej8J6Zs7r6:APA91bGenYb6yqZzWqWQtqvSWBQVl1CB57tOqo3K4UODaKFbHZ32zessVEdr3sfQQqkN3POSnbZgnYCPDskKRYoTHAzF9G4MS2M6DWnzqvtyGDZ-QxOSMIc";
         // 1. تحديد المستخدم الذي سنرسل له (مثال: جلبنا المستخدم رقم 1)
-        // $user = User::find(1); 
-
+        $user = User::find(1); 
         // 2. التحقق من أن المستخدم لديه توكن مسجل
-        // if (!$user || !$user->fcm_token) {
-        //     return response()->json(['message' => 'المستخدم لا يملك FCM Token'], 404);
-        // }
+        if (!$user || !$user->fcm_token) {
+            return response()->json(['message' => 'المستخدم لا يملك FCM Token'], 404);
+        }
         // 3. تهيئة الاتصال بفايربيز
         $factory = (new Factory)->withServiceAccount(storage_path('app/alyaser-cfee3-firebase-adminsdk-fbsvc-2a83ea8a88.json'));
         $messaging = $factory->createMessaging();
@@ -35,7 +33,6 @@ class NotificationController extends Controller
                 'order_id' => '12345',
                 'type' => 'order_update' // بيانات إضافية تفيد تطبيق الموبايل عند الضغط على الإشعار
             ]);
-
         try {
             // 6. إرسال الإشعار
             $messaging->send($message);
