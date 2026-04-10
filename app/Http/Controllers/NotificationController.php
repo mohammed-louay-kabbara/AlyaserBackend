@@ -21,9 +21,8 @@ class NotificationController extends Controller
         // if (!$user || !$user->fcm_token) {
         //     return response()->json(['message' => 'المستخدم لا يملك FCM Token'], 404);
         // }
-        dd(storage_path('storage/app/firebase_credentials.json')? 'yes': 'no');
         // 3. تهيئة الاتصال بفايربيز
-        $factory = (new Factory)->withServiceAccount('');
+        $factory = (new Factory)->withServiceAccount(storage_path('storage/app/firebase_credentials.json'));
         $messaging = $factory->createMessaging();
 
         // 4. بناء محتوى الإشعار
