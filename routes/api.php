@@ -8,6 +8,7 @@ use App\Http\Controllers\OfferController;
 use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ExchangeRateController;
+use App\Http\Controllers\NotificationController;
 
 
 
@@ -21,6 +22,7 @@ Route::group([
 });
 
 Route::post('logout', [AuthController::class,'logout']);
+Route::post('sendPushNotification', [NotificationController::class,'sendPushNotification']);
 Route::post('refresh', [AuthController::class,'refresh']);
 Route::get('me', [AuthController::class,'me']);
 Route::post('login', [AuthController::class,'login']);

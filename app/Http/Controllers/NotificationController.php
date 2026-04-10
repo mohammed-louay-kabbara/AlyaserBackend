@@ -12,23 +12,25 @@ class NotificationController extends Controller
 {
     public function sendPushNotification(Request $request)
     {
+
+    $token="dBrx1XnKTZ-Qej8J6Zs7r6:APA91bGenYb6yqZzWqWQtqvSWBQVl1CB57tOqo3K4UODaKFbHZ32zessVEdr3sfQQqkN3POSnbZgnYCPDskKRYoTHAzF9G4MS2M6DWnzqvtyGDZ-QxOSMIc";
         // 1. تحديد المستخدم الذي سنرسل له (مثال: جلبنا المستخدم رقم 1)
-        $user = User::find(1); 
+        // $user = User::find(1); 
 
         // 2. التحقق من أن المستخدم لديه توكن مسجل
-        if (!$user || !$user->fcm_token) {
-            return response()->json(['message' => 'المستخدم لا يملك FCM Token'], 404);
-        }
-
+        // if (!$user || !$user->fcm_token) {
+        //     return response()->json(['message' => 'المستخدم لا يملك FCM Token'], 404);
+        // }
+        dd(storage_path('storage/app/firebase_credentials.json')? 'yes': 'no');
         // 3. تهيئة الاتصال بفايربيز
-        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase_credentials.json'));
+        $factory = (new Factory)->withServiceAccount('');
         $messaging = $factory->createMessaging();
 
         // 4. بناء محتوى الإشعار
         $notification = Notification::create('طلب جديد!', 'تم تحديث حالة طلبك بنجاح.');
 
         // 5. تجهيز الرسالة
-        $message = CloudMessage::withTarget('token', $user->fcm_token)
+        $message = CloudMessage::withTarget('token', $token )
             ->withNotification($notification)
             ->withData([
                 'order_id' => '12345',
