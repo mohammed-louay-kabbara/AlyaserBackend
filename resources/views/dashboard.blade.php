@@ -42,7 +42,7 @@
                                             {{ $activated }}
                                         </h5>
                                         <p class="mb-0">
-                                           عدد المستخدمين المنتظرين قبول الأدمن
+                                            عدد المستخدمين المنتظرين قبول الأدمن
                                         </p>
                                     </div>
                                 </div>
@@ -64,7 +64,7 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الأصناف</p>
                                         <h5 class="font-weight-bolder">
-                                           {{ $category }}
+                                            {{ $category }}
                                         </h5>
                                         <p class="mb-0">
                                             عدد اصناف المواد في التطبيق
@@ -93,7 +93,7 @@
 
                                         </h5>
                                         <p class="mb-0">
-                                            
+
                                             عدد المنتجات الكلي الموجودين في التطبيق
                                         </p>
                                     </div>
@@ -119,7 +119,7 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد المنتجات المنتهية</p>
                                         <h5 class="font-weight-bolder">
-                                           {{ $Product_quantity }}
+                                            {{ $Product_quantity }}
                                         </h5>
                                         <p class="mb-0">
                                             عدد المنتجات التي انتهت من المركز
@@ -145,10 +145,10 @@
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الطلبات في حالة الانتظار
                                         </p>
                                         <h5 class="font-weight-bolder">
-                                           {{ $Order_pending }}
+                                            {{ $Order_pending }}
                                         </h5>
                                         <p class="mb-0">
-                                           التي تنتظر إرساله إلى السمتودع للتحضير
+                                            التي تنتظر إرساله إلى السمتودع للتحضير
                                         </p>
                                     </div>
                                 </div>
@@ -195,7 +195,7 @@
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">عدد الإعلانات النشطة</p>
                                         <h5 class="font-weight-bolder">
-                                          {{ $Offers_count }}
+                                            {{ $Offers_count }}
                                         </h5>
                                         <p class="mb-0">
                                             عدد العروض الفعالة في التطبيق
