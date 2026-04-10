@@ -14,10 +14,10 @@ class AuthController extends Controller
 {
     public function fcm_token(Request $request)
     {
-        User::where('id',Auth::id())->update(['fcm_token',$request->fcm_token]);
+        User::where('id',Auth::id())->update(['fcm_token' => $request->fcm_token]);
         return response()->json(['تم الحفظ بنجاح'], 200);
     }
-    
+
     // 1. تسجيل دخول الأدمن باستخدام الهاتف
     public function login_admin(Request $request)
     {
