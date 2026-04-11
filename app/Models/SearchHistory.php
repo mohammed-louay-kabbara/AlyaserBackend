@@ -6,5 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SearchHistory extends Model
 {
-    //
+        protected $fillable = [
+        'term', 'user_id'
+    ];
 }
