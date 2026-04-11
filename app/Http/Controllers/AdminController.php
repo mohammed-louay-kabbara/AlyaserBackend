@@ -20,7 +20,7 @@ class AdminController extends Controller
         $Product_quantity=Product::where('quantity',0)->count();
         $Order_pending=Order::where('status','pending')->count();
         $Order_processing=Order::where('status','processing')->count();
-        $Offers_count=Offer::where('expires_at','<',now())->count();
+        $Offers_count=Offer::where('expires_at','>',now())->count();
          $Offers = Offer::where('expires_at', '>', now())->get();
         return view('dashboard',compact('users_count','activated','category','Product_count','Product_quantity','Order_pending','Offers_count','Order_processing','Offers'));
     }
