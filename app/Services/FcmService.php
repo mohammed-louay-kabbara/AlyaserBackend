@@ -20,7 +20,7 @@ class FcmService
         $this->messaging = $factory->createMessaging();
     }
 
-    public function sendAndSaveNotification($userId, $token, $title, $body, $destination, $targetId = null)
+    public function sendAndSaveNotification($userId, $token, $title, $body, $destination)
     {
         try {
             // 1. إرسال الإشعار لفايربيز
@@ -29,13 +29,11 @@ class FcmService
             // نرسل الوجهة في الـ Data لكي يفهمها فلاتر عند الضغط
             $data = [
                 'destination' => $destination,
-                'target_id' => (string) $targetId,
             ];
 
             $message = CloudMessage::withTarget('token', $token)
                 ->withNotification($notification)
                 ->withData($data);
-
             $this->messaging->send($message);
 
             // 2. حفظ الإشعار في قاعدة البيانات
@@ -44,7 +42,6 @@ class FcmService
                 'title'       => $title,
                 'body'        => $body,
                 'destination' => $destination,
-                'target_id'   => $targetId,
             ]);
 
             return true;

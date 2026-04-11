@@ -157,11 +157,12 @@ class AuthController extends Controller
 
         // إرسال الإشعار باستخدام الخدمة
         if ($user->fcm_token) {
-            $fcmService->sendNotification(
+            $fcmService->sendAndSaveNotification(
+                $user->id,
                 $user->fcm_token, 
                 'تم تفعيل حسابك! 🎉', 
                 'أهلاً بك في تطبيق الياسر، تم قبول طلب انضمامك بنجاح.',
-                ['type' => 'activation']
+                'home'
             );
         }
 
