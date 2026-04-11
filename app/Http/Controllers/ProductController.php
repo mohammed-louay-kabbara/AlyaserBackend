@@ -15,8 +15,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $Products = Product::get();
-        return response()->json($Products, 200);
+        $products = Product::paginate(20);
+            
+        return response()->json($products, 200);
     }
     public function getSearchScreenData()
     {
