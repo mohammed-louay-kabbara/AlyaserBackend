@@ -66,11 +66,11 @@ public function store(Request $request)
 
     public function index()
     {
-        $orders = Order::where('user_id', Auth::id())->with('items.product')->withcount('items')->orderBy('created_at', 'desc')->get();
+        $orders = Order::where('user_id', Auth::id())->withcount('items')->orderBy('created_at', 'desc')->get();
         return response()->json($orders, 200);
     }
     public function Order_details($id){
-        $order = Order::where('id', $id)->with('items')->get();
+        $order = Order::where('id', $id)->with('items.product')->with('items')->get();
         return response()->json($order, 200);
     }
 }
