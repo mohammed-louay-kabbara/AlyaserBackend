@@ -37,6 +37,7 @@ Route::get('Product-search',[ProductController::class,'search']);
 Route::resource('Category',CategoryController::class);
 Route::resource('offers', OfferController::class);
 Route::resource('CartItem',CartItemController::class);
+Route::post('delete_CartItem/{id}',[CartItemController::class,'destroy']);
 Route::post('CartItem_clear',[CartItemController::class,'clear']);
 Route::resource('ExchangeRate', ExchangeRateController::class);
 Route::get('get_exchange_rate', [ExchangeRateController::class,'get_exchange_rate']);
