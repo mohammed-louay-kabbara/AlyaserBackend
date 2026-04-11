@@ -238,7 +238,7 @@
                                     <div class="carousel-inner border-radius-lg h-100">
                                         @foreach ($Offers as $index => $of)
                                             <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}"
-                                                style="background-image: url('{{ asset($of->image) }}'); background-size: cover;">
+                                                style="background-image: url('{{ asset('storage/' . $of->image) }}'); background-size: cover;">
                                                 <div
                                                     class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
                                                     <div
