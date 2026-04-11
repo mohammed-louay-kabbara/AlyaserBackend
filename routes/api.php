@@ -24,6 +24,9 @@ Route::group([
 Route::post('logout', [AuthController::class,'logout']);
 Route::post('fcm_token', [AuthController::class,'fcm_token']);
 Route::post('sendPushNotification', [NotificationController::class,'sendPushNotification']);
+Route::get('my_Notification',[NotificationController::class,'my_Notification']);
+Route::get('category_search/{id}',[NotificationController::class,'category_search']);
+Route::get('getSearchScreenData',[NotificationController::class,'getSearchScreenData']);
 Route::post('refresh', [AuthController::class,'refresh']);
 Route::get('me', [AuthController::class,'me']);
 Route::post('login', [AuthController::class,'login']);
@@ -34,6 +37,7 @@ Route::get('Product-search',[ProductController::class,'search']);
 Route::resource('Category',CategoryController::class);
 Route::resource('offers', OfferController::class);
 Route::resource('CartItem',CartItemController::class);
+Route::post('CartItem_clear',[CartItemController::class,'clear']);
 Route::resource('ExchangeRate', ExchangeRateController::class);
 Route::get('get_exchange_rate', [ExchangeRateController::class,'get_exchange_rate']);
 Route::post('add_order', [OrderController::class,'store']);
