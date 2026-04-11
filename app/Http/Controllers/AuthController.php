@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Services\FcmService; // استيراد الخدمة الجديدة
 use Illuminate\Http\Request;
 use Exception;
 
@@ -144,12 +145,28 @@ class AuthController extends Controller
         return response()->json(['message' => 'تم التحديث بنجاح', 'user' => $user], 200);
     }
 
-    public function activated($id)
+    public function activated($id, FcmService $fcmService) // حقن الخدمة هنا
     {
-        User::where('id', $id)->update(['activated' => 1]);
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'المستخدم غير موجود'], 404);
+        }
+
+        $user->update(['activated' => 1]);
+
+        // إرسال الإشعار باستخدام الخدمة
+        if ($user->fcm_token) {
+            $fcmService->sendNotification(
+                $user->fcm_token, 
+                'تم تفعيل حسابك! 🎉', 
+                'أهلاً بك في تطبيق الياسر، تم قبول طلب انضمامك بنجاح.',
+                ['type' => 'activation']
+            );
+        }
+
         return response()->json(['message' => 'تم تنشيط الحساب بنجاح'], 200);
     }
-
     public function logout()
     {
         auth()->logout();
