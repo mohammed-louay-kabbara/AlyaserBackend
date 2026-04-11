@@ -49,7 +49,6 @@ class CartItemController extends Controller
         return response()->json(['message' => 'تمت الإضافة للسلة', 'item' => $cartItem], 200);
     }
 
-    // حذف عنصر من السلة
     public function destroy($id)
     {
         $item = cart_item::where('user_id', Auth::id())->findOrFail($id);
