@@ -7,6 +7,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 use App\Models\User;
+
 use App\Models\UserNotification;
 
 class NotificationController extends Controller
@@ -37,7 +38,7 @@ class NotificationController extends Controller
         try {
             // 6. إرسال الإشعار
             $messaging->send($message);
-            return response()->json(['message' => 'تم إرسال الإشعار بنجاح']);
+          
         } catch (\Exception $e) {
             return response()->json(['error' => 'فشل الإرسال: ' . $e->getMessage()], 500);
         }
@@ -47,4 +48,10 @@ class NotificationController extends Controller
                            ->orderBy('created_at', 'desc')
                            ->get();
     }
+        public function read_all(){
+         UserNotification::where('user_id', auth()->id())
+                           ->update(['is_read'=> 1]);
+          return response()->json(['message' => 'لقد عملية القراءة بنجاح']);
+        }
+
 }

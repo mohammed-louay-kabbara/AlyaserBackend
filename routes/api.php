@@ -22,8 +22,10 @@ Route::group([
 });
 
 Route::post('logout', [AuthController::class,'logout']);
+Route::get('addproduct', [ProductController::class,'addproduct']);
 Route::post('fcm_token', [AuthController::class,'fcm_token']);
 Route::post('sendPushNotification', [NotificationController::class,'sendPushNotification']);
+Route::get('read_all', [NotificationController::class,'read_all']);
 Route::get('my_Notification',[NotificationController::class,'my_Notification']);
 Route::get('category_search/{id}',[ProductController::class,'category_search']);
 Route::get('getSearchScreenData',[ProductController::class,'getSearchScreenData']);

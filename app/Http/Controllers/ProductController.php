@@ -13,6 +13,16 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function addproduct(){
+        Product::create([
+            'name' => 'سكر',
+            'retail_price' => 10000,
+            'wholesale_price' => 100000,
+            'quantity' => 10,
+        
+        ]);
+        return response()->json('تم الحفظ بنجاح', 200);
+    }
     public function index()
     {
         $products = Product::paginate(20);

@@ -10,7 +10,8 @@ Route::get('/', function () {
 });
 Route::post('login_admin', [AuthController::class,'login_admin'])->name('login_admin');
 Route::get('/test-invoice', [InvoiceController::class, 'exportTxt']);
-Route::get('/dashboard_admin', [AdminController::class, 'index']);
+Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
+Route::get('users',[AdminController::class,'get_users'])->name('users');
 
 Route::get('/export-real-invoice', function () {
     // الترتيب حسب إعدادات الأمين: الرمز ثم Tab ثم الكمية ثم Tab ثم رقم الوحدة ثم Tab ثم السعر
