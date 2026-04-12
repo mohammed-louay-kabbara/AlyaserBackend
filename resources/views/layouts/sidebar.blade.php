@@ -13,21 +13,21 @@
       <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
           <ul class="navbar-nav">
               <li class="nav-item">
-                  <a class="nav-link active" href="../pages/dashboard.html">
+                  <a class="nav-link  {{ request()->routeIs('dashboard_admin.*') ? 'active' : '' }}" href="{{ route('dashboard_admin') }}">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                           <i class="ni ni-tv-2 text-dark text-sm opacity-10"></i>
                       </div>
-                      <span class="nav-link-text ms-1">Dashboard</span>
+                      <span class="nav-link-text ms-1">لوحة التحكم</span>
                   </a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link " href="../pages/tables.html">
+                  <a class="nav-link {{ request()->routeIs('users') ? 'active' : '' }}" href="{{ route('users') }}">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                          <i class="ni ni-calendar-grid-58 text-dark text-sm opacity-10"></i>
+                          <i class="ni ni-single-02 text-dark text-sm opacity-10"></i>
                       </div>
-                      <span class="nav-link-text ms-1">Tables</span>
+                      <span class="nav-link-text ms-1">إدارة المستخدمين</span>
                   </a>
               </li>
               <li class="nav-item">
@@ -36,16 +36,17 @@
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                           <i class="ni ni-credit-card text-dark text-sm opacity-10"></i>
                       </div>
-                      <span class="nav-link-text ms-1">Billing</span>
+                      <span class="nav-link-text ms-1">إدارة الأصناف</span>
                   </a>
               </li>
               <li class="nav-item">
                   <a class="nav-link " href="../pages/virtual-reality.html">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                          <i class="ni ni-app text-dark text-sm opacity-10"></i>
+
+                          <i class="ni ni-single-copy-04 text-dark text-sm opacity-10"></i>
                       </div>
-                      <span class="nav-link-text ms-1">Virtual Reality</span>
+                      <span class="nav-link-text ms-1">إدارة المنتجات</span>
                   </a>
               </li>
               <li class="nav-item">
@@ -54,39 +55,51 @@
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                           <i class="ni ni-world-2 text-dark text-sm opacity-10"></i>
                       </div>
-                      <span class="nav-link-text ms-1">RTL</span>
-                  </a>
-              </li>
-              <li class="nav-item mt-3">
-                  <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account pages</h6>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link " href="../pages/profile.html">
-                      <div
-                          class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                          <i class="ni ni-single-02 text-dark text-sm opacity-10"></i>
-                      </div>
-                      <span class="nav-link-text ms-1">Profile</span>
+                      <span class="nav-link-text ms-1">إدارة العروضات</span>
                   </a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link " href="../pages/sign-in.html">
+                  <a class="nav-link " href="../pages/rtl.html">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                          <i class="ni ni-single-copy-04 text-dark text-sm opacity-10"></i>
+
+                          <i class="ni ni-app text-dark text-sm opacity-10"></i>
                       </div>
-                      <span class="nav-link-text ms-1">Sign In</span>
+                      <span class="nav-link-text ms-1">إدارة الطلبات</span>
                   </a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link " href="../pages/sign-up.html">
+                  <a class="nav-link " href="../pages/rtl.html">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                          <i class="ni ni-collection text-dark text-sm opacity-10"></i>
+                          <i class="ni ni-world-2 text-dark text-sm opacity-10"></i>
                       </div>
-                      <span class="nav-link-text ms-1">Sign Up</span>
+                      <span class="nav-link-text ms-1">إدارة المستودع</span>
+                  </a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link " href="../pages/rtl.html">
+                      <div
+                          class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                          <i class="ni ni-bell-55 text-dark text-sm opacity-10"></i>
+                      </div>
+                      <span class="nav-link-text ms-1">إدارة الإشعارات</span>
+                  </a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link " href="../pages/rtl.html">
+                      <div
+                          class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                          <i class="ni ni-bag-17 text-dark text-sm opacity-10"></i>
+                      </div>
+                      <span class="nav-link-text ms-1">إدارة العروضات</span>
                   </a>
               </li>
           </ul>
+      </div>
+      
+      <div class="">
+      <button style="width: 90%; margin: 10px" type="button" class="btn btn-danger">تسجيل الخروج</button>
+      <button style="width: 90%; margin: 10px" type="button" class="btn btn-primary">تعديل الملف الشخصي</button>
       </div>
   </aside>

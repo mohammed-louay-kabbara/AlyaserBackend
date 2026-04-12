@@ -1,11 +1,9 @@
 <?php
 
 namespace App\Services;
-
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Support\Facades\Log;
-// نعطي اسماً مستعاراً لإشعار فايربيز لتمييزه عن موديل قاعدة البيانات
 use Kreait\Firebase\Messaging\Notification as FirebaseNotification; 
 use App\Models\UserNotification; // الموديل الخاص بنا
 
@@ -23,21 +21,15 @@ class FcmService
     public function sendAndSaveNotification($userId, $token, $title, $body, $destination)
     {
         try {
-            // 1. إرسال الإشعار لفايربيز
             $notification = FirebaseNotification::create($title, $body);
-            
-            // نرسل الوجهة في الـ Data لكي يفهمها فلاتر عند الضغط
             $data = [
                 'destination' => $destination,
             ];
-
             $message = CloudMessage::withTarget('token', $token)
                 ->withNotification($notification)
                 ->withData($data);
             $this->messaging->send($message);
-
-            // 2. حفظ الإشعار في قاعدة البيانات
-            UserNotification::create([
+                UserNotification::create([
                 'user_id'     => $userId,
                 'title'       => $title,
                 'body'        => $body,
