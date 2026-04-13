@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -12,6 +14,11 @@ Route::post('login_admin', [AuthController::class,'login_admin'])->name('login_a
 Route::get('/test-invoice', [InvoiceController::class, 'exportTxt']);
 Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
 Route::get('users',[AdminController::class,'get_users'])->name('users');
+Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
+Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
+Route::resource('Category', CategoryController::class);
+Route::get('categories',[CategoryController::class,'show_admin'])->name('categories');
+Route::get('products',[ProductController::class,'product_admin'])->name('Products');
 
 Route::get('/export-real-invoice', function () {
     // الترتيب حسب إعدادات الأمين: الرمز ثم Tab ثم الكمية ثم Tab ثم رقم الوحدة ثم Tab ثم السعر

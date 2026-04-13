@@ -24,6 +24,16 @@ class CategoryController extends Controller
     {
         
     }
+    public function show_admin(Request $request)
+    {
+        $query=category::query();
+            // 1. فلترة البحث بالاسم (إذا وجد)
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+        $categories=$query->get();
+        return view('categories',compact('categories'));
+    }
 
     public function store(Request $request)
     {
@@ -36,7 +46,7 @@ class CategoryController extends Controller
         category::create([
             'name' => $request->name
         ]);
-        return response()->json(['تم حفظ الصنف بنجاح'], 200);
+        return back();
     }
 
 
@@ -65,7 +75,7 @@ class CategoryController extends Controller
         category::where('id',$id)->update([
             'name' => $request->name
         ]);
-        return response()->json(['تم حفظ الصنف بنجاح'], 200);
+        return back();
     }
 
     /**
@@ -74,6 +84,6 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         category::where('id',$id)->delete();
-        return response()->json(['تم الحذف بنجاح'], 200);
+        return back();
     }
 }

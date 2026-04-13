@@ -82,11 +82,9 @@ class AuthController extends Controller
             'name'      => 'required|string|max:255',
             'phone'     => 'required|string|unique:users,phone',
             'zone'      => 'required|string',
-            'shop_name' => 'required|string',
             'address'   => 'required|string',
             'password'  => 'required|string|min:8', 
         ]);
-
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }      

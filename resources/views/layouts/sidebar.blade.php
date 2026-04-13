@@ -13,7 +13,8 @@
       <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
           <ul class="navbar-nav">
               <li class="nav-item">
-                  <a class="nav-link  {{ request()->routeIs('dashboard_admin.*') ? 'active' : '' }}" href="{{ route('dashboard_admin') }}">
+                  <a class="nav-link  {{ request()->routeIs('dashboard_admin.*') ? 'active' : '' }}"
+                      href="{{ route('dashboard_admin') }}">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                           <i class="ni ni-tv-2 text-dark text-sm opacity-10"></i>
@@ -31,7 +32,8 @@
                   </a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link " href="../pages/billing.html">
+                  <a class="nav-link {{ request()->routeIs('categories') ? 'active' : '' }}"
+                      href="{{ route('categories') }}">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                           <i class="ni ni-credit-card text-dark text-sm opacity-10"></i>
@@ -40,7 +42,8 @@
                   </a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link " href="../pages/virtual-reality.html">
+                  <a class="nav-link {{ request()->routeIs('Products') ? 'active' : '' }}"
+                      href="{{ route('Products') }}">
                       <div
                           class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
 
@@ -86,20 +89,11 @@
                       <span class="nav-link-text ms-1">إدارة الإشعارات</span>
                   </a>
               </li>
-              <li class="nav-item">
-                  <a class="nav-link " href="../pages/rtl.html">
-                      <div
-                          class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                          <i class="ni ni-bag-17 text-dark text-sm opacity-10"></i>
-                      </div>
-                      <span class="nav-link-text ms-1">إدارة العروضات</span>
-                  </a>
-              </li>
           </ul>
       </div>
-      
+
       <div class="">
-      <button style="width: 90%; margin: 10px" type="button" class="btn btn-danger">تسجيل الخروج</button>
-      <button style="width: 90%; margin: 10px" type="button" class="btn btn-primary">تعديل الملف الشخصي</button>
+          <button style="width: 90%; margin: 10px" type="button" class="btn btn-danger">تسجيل الخروج</button>
+          <button style="width: 90%; margin: 10px" type="button" class="btn btn-primary">تعديل الملف الشخصي</button>
       </div>
   </aside>
