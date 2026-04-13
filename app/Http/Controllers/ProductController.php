@@ -56,6 +56,13 @@ class ProductController extends Controller
             ]
         ], 200);
     }
+    public function product_admin()
+    {
+        // جلب المنتجات مرتبة من الأحدث إلى الأقدم مع تقسيمها لصفحات
+        $Products = Product::latest()->paginate(20); 
+        
+        return view('Products', compact('Products'));
+    }
 
     public function search(Request $request)
     {
