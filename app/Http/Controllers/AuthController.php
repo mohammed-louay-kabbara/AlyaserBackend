@@ -25,23 +25,22 @@ public function login_admin(Request $request)
         'phone'    => 'required|string',
         'password' => 'required',
     ]);
-    // نستخدم Auth::attempt الذي يعيد true أو false وينشئ جلسة (Session)
-    if (Auth::attempt($credentials)) {
-        $user = Auth::user();
-        // التحقق من الصلاحية
+
+    // نحدد Guard الـ web هنا بشكل صريح
+    if (Auth::guard('web')->attempt($credentials)) {
+        
+        $user = Auth::guard('web')->user();
+
         if ($user->role != 1) { 
-            Auth::logout(); // تسجيل خروج فوراً لأنه غير مصرح له
-            return back()->withErrors(['error' => 'غير مصرح لك بالدخول كمسؤول']);
+            Auth::guard('web')->logout();
+            return back()->withErrors(['error' => 'غير مصرح لك بالدخول']);
         }
-        // تحديث معرف الجلسة للحماية من Session Fixation
+
         $request->session()->regenerate();
         return redirect()->intended('/dashboard_admin');
     }
 
-    // في حال فشل تسجيل الدخول
-    return back()->withErrors([
-        'phone' => 'بيانات الدخول غير صحيحة أو غير موجودة.',
-    ]);
+    return back()->withErrors(['phone' => 'بيانات الدخول غير صحيحة']);
 }
     public function me()
     {
