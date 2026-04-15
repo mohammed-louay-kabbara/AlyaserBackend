@@ -13,7 +13,7 @@ use App\Http\Controllers\NotificationController;
 // مسارات متاحة للجميع (بدون تسجيل دخول)
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('login');
 
 Route::post('login_admin', [AuthController::class, 'login_admin'])->name('login_admin');
 Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
