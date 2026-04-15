@@ -127,9 +127,10 @@ public function store(Request $request)
                 }
 
                 // يمكنك تخصيص السعر هنا إذا كان يعتمد على purchase_type (مفرق/جملة)
-                $unitPrice = $product->price; 
-                
-                $subTotal = $unitPrice * $item['quantity'];
+                $secureUnitPrice = ($item['purchase_type'] == 'طرد') 
+                                 ? $product->wholesale_price 
+                                 : $product->retail_price;
+                $subTotal = $secureUnitPrice * $item['quantity'];
                 $totalAmount += $subTotal;
 
                 // تجهيز المصفوفة للإدخال الجماعي
@@ -138,7 +139,7 @@ public function store(Request $request)
                     'product_id'    => $item['product_id'],
                     'purchase_type' => $item['purchase_type'],
                     'quantity'      => $item['quantity'],
-                    'unit_price'    => $unitPrice,
+                    'unit_price'    => $secureUnitPrice,
                     'sub_total'     => $subTotal,
                     'created_at'    => now(),
                     'updated_at'    => now(),
