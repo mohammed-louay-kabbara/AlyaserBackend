@@ -19,9 +19,6 @@ class AuthController extends Controller
         return response()->json(['تم الحفظ بنجاح'], 200);
     }
 
-    // 1. تسجيل دخول الأدمن باستخدام الهاتف
-use Illuminate\Support\Facades\Auth; // تأكد من استدعاء الكلاس في الأعلى
-
 public function login_admin(Request $request)
 {
     $credentials = $request->validate([
