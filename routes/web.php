@@ -10,29 +10,47 @@ use App\Http\Controllers\OfferController;
 use App\Http\Controllers\warehousecontroller;
 use App\Http\Controllers\NotificationController;
 
+// مسارات متاحة للجميع (بدون تسجيل دخول)
 Route::get('/', function () {
     return view('welcome');
 });
-Route::post('login_admin', [AuthController::class,'login_admin'])->name('login_admin');
-Route::get('/test-invoice', [InvoiceController::class, 'exportTxt']);
-Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
-Route::get('users',[AdminController::class,'get_users'])->name('users');
-Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
+
+Route::post('login_admin', [AuthController::class, 'login_admin'])->name('login_admin');
 Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
-Route::resource('Category', CategoryController::class);
-Route::resource('warehouse', warehousecontroller::class);
-Route::get('Notifications', [NotificationController::class,'Notification'])->name('Notifications');
-Route::post('sendNotification', [NotificationController::class,'sendNotification'])->name('Notifications.send');
-Route::post('logout', [AuthController::class,'logout']);
-Route::get('categories',[CategoryController::class,'show_admin'])->name('categories');
-Route::get('products',[ProductController::class,'product_admin'])->name('Products');
-Route::get('Product-search',[ProductController::class,'search_admin'])->name('Product-search');
-Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
-Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
-Route::get('offers',[OfferController::class,'offer_admin'])->name('offers');
-Route::post('Offer.store',[OfferController::class,'store'])->name('Offer.store');
-Route::delete('Offer_destroy/{id}',[OfferController::class,'destroy'])->name('Offer.destroy');
-Route::put('Offer_update/{id}',[OfferController::class,'update'])->name('Offer.update');
+
+// --- المسارات المحمية ---
+// أي مسار داخل هذه المجموعة سيتطلب تسجيل الدخول
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
+    Route::get('users', [AdminController::class, 'get_users'])->name('users');
+    Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
+    
+    Route::resource('Category', CategoryController::class);
+    Route::resource('warehouse', warehousecontroller::class);
+    
+    Route::get('Notifications', [NotificationController::class, 'Notification'])->name('Notifications');
+    Route::post('sendNotification', [NotificationController::class, 'sendNotification'])->name('Notifications.send');
+    
+    Route::get('categories', [CategoryController::class, 'show_admin'])->name('categories');
+    Route::get('products', [ProductController::class, 'product_admin'])->name('Products');
+    Route::get('Product-search', [ProductController::class, 'search_admin'])->name('Product-search');
+    Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
+    Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
+    
+    Route::get('offers', [OfferController::class, 'offer_admin'])->name('offers');
+    Route::post('Offer.store', [OfferController::class, 'store'])->name('Offer.store');
+    Route::delete('Offer_destroy/{id}', [OfferController::class, 'destroy'])->name('Offer.destroy');
+    Route::put('Offer_update/{id}', [OfferController::class, 'update'])->name('Offer.update');
+    
+    Route::get('/activated/{id}', [AuthController::class, 'activated']);
+    
+    // مسار تسجيل الخروج يجب أن يكون محمياً أيضاً
+    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+// مسارات تجريبية (اختياري وضعها خارج أو داخل الحماية)
+Route::get('/test-invoice', [InvoiceController::class, 'exportTxt']);
 
 
 Route::get('/export-real-invoice', function () {
@@ -60,5 +78,3 @@ Route::get('/export-real-invoice', function () {
         'Content-Type' => 'text/plain; charset=UTF-8',
     ]);
 });
-
-Route::get('/activated/{id}',[AuthController::class,'activated']);
