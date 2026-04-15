@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('content')
-    <main class="main-content position-relative border-radius-lg ">
+    <main class="main-content position-relative border-radius-lg">
         <div class="container-fluid py-4">
             <div class="row">
                 <div class="col-12">
@@ -9,176 +9,200 @@
                             <h6>إدارة المنتجات</h6>
                         </div>
                         <div class="card-body">
-                            <div class="">
-                                <div class="container-fluid py-4">
+                            <div class="row mb-4 align-items-center">
+                                <form action="{{ route('Product-search') }}" method="GET">
                                     <div class="row mb-4 align-items-center">
-                                        <div class="col-md-6 col-lg-4 mb-3 mb-md-0">
-                                            <form action="{{ url()->current() }}" method="GET">
-                                                <div class="input-group">
-                                                    <span class="input-group-text text-body"><i class="fas fa-search"
-                                                            aria-hidden="true"></i></span>
-                                                    <input type="text" class="form-control" name="search"
-                                                        placeholder="ابحث باستخدام الاسم..."
-                                                        value="{{ request()->query('search') }}">
-                                                    <button class="btn btn-primary mb-0" type="submit">بحث</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    <div class="card">
-                                        <div class="table-responsive">
-                                            <table class="table align-items-center mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="">
-                                                            صورة</th>
-                                                        <th class="">
-                                                            الاسم</th>
-                                                        <th class="">
-                                                            سعر القطعة
-                                                        </th>
-                                                        <th class="">
-                                                            سعر الجملة
-                                                        </th>
-                                                        <th class="">
-                                                            الكمية
-                                                        </th>
-                                                        <th class="">
-                                                            ااسم الصنف
-                                                        </th>
-                                                        <th>
-
-                                                        </th>
-
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($Products as $u)
-                                                        <tr>
-                                                            <td>
-                                                                <img src="{{ asset($u->image) }}" alt="" srcset="">
-                                                            </td>
-                                                            <td>
-                                                                <div class="d-flex px-2 py-1">
-                                                                    <div class="d-flex flex-column justify-content-center">
-                                                                        <h6 class="mb-0 ">{{ $u->name }}</h6>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <p>{{ $u->retail_price }}</p>
-                                                            </td>
-                                                            <td>
-                                                                <p>{{ $u->wholesale_price }}</p>
-                                                            </td>
-                                                            <td>
-                                                                <p>{{ $u->quantity }}</p>
-                                                            </td>
-                                                            <td>
-                                                                <p>{{ $u->category_id ? $u->category->name : 'لم يتم ربط المنتج بصنف' }}
-                                                                </p>
-                                                            </td>
-
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                            <div class="d-flex justify-content-center py-4">
-                                                {{ $Products->links() }}
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text text-body"><i
+                                                        class="fas fa-search"></i></span>
+                                                <input type="text" class="form-control" name="search"
+                                                    placeholder="ابحث بالاسم..." value="{{ request('search') }}">
                                             </div>
                                         </div>
+
+                                        <div class="col-md-6">
+                                            <div class="btn-group" role="group" aria-label="Filter products">
+                                                <input type="radio" class="btn-check" name="stock_status" id="all"
+                                                    value="all"
+                                                    {{ request('stock_status', 'all') == 'all' ? 'checked' : '' }}
+                                                    onchange="this.form.submit()">
+                                                <label class="btn btn-outline-primary mb-0" for="all">الكل</label>
+
+                                                <input type="radio" class="btn-check" name="stock_status" id="available"
+                                                    value="available"
+                                                    {{ request('stock_status') == 'available' ? 'checked' : '' }}
+                                                    onchange="this.form.submit()">
+                                                <label class="btn btn-outline-primary mb-0" for="available">متوفرة</label>
+
+                                                <input type="radio" class="btn-check" name="stock_status"
+                                                    id="out_of_stock" value="out_of_stock"
+                                                    {{ request('stock_status') == 'out_of_stock' ? 'checked' : '' }}
+                                                    onchange="this.form.submit()">
+                                                <label class="btn btn-outline-primary mb-0"
+                                                    for="out_of_stock">منتهية</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <button class="btn btn-primary w-100 mb-0" type="submit">تطبيق</button>
+                                        </div>
                                     </div>
-                                </div>
+                                </form>
+                            </div>
+
+                            <div class="table-responsive p-0">
+                                <table class="table align-items-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                class="text-center text-uppercase text-secondary  font-weight-bolder opacity-7">
+                                                صورة</th>
+                                            <th class="text-uppercase text-secondary  font-weight-bolder opacity-7 ps-2">
+                                                الاسم</th>
+                                            <th
+                                                class="text-center text-uppercase text-secondary  font-weight-bolder opacity-7">
+                                                سعر القطعة</th>
+                                            <th
+                                                class="text-center text-uppercase text-secondary  font-weight-bolder opacity-7">
+                                                سعر الجملة</th>
+                                            <th
+                                                class="text-center text-uppercase text-secondary  font-weight-bolder opacity-7">
+                                                الكمية</th>
+                                            <th
+                                                class="text-center text-uppercase text-secondary  font-weight-bolder opacity-7">
+                                                اسم الصنف</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($Products as $u)
+                                            <tr>
+                                                <td class="align-middle text-center">
+                                                    <div class="d-flex justify-content-center align-items-center"
+                                                        id="image-container-{{ $u->id }}">
+                                                        @if ($u->image)
+                                                            <div class="position-relative">
+                                                                <img src="{{ asset($u->image) }}" class="avatar avatar-sm"
+                                                                    alt="صورة المنتج">
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-danger p-1 px-2 position-absolute"
+                                                                    style="top: -10px; right: -10px; border-radius: 50%;"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#deleteImageModal"
+                                                                    onclick="prepareDelete({{ $u->id }})">
+                                                                    <i class="fas fa-times "></i>
+                                                                </button>
+                                                            </div>
+                                                        @else
+                                                            <label for="file-{{ $u->id }}"
+                                                                class="btn btn-sm btn-outline-primary mb-0">رفع</label>
+                                                            <input type="file" id="file-{{ $u->id }}"
+                                                                class="d-none image-upload-input"
+                                                                data-id="{{ $u->id }}">
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <h6 class="mb-0 ">{{ $u->name }}</h6>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <span
+                                                        class="text-secondary  font-weight-bold">{{ number_format($u->retail_price, 2) }}</span>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <span
+                                                        class="text-secondary  font-weight-bold">{{ number_format($u->wholesale_price, 2) }}</span>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <span
+                                                        class="text-secondary  font-weight-bold">{{ $u->quantity }}</span>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <span class="text-secondary  font-weight-bold">
+                                                        {{ $u->category_id ? $u->category->name : 'لم يتم الربط' }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-center py-4">
+                                {{ $Products->links() }}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="deleteImageModal" tabindex="-1" aria-labelledby="deleteImageModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteImageModalLabel">تأكيد حذف الصورة</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        هل أنت متأكد من رغبتك في حذف صورة هذا المنتج؟
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <form id="confirmDeleteForm" method="POST" action="">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">نعم، احذف الصورة</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 @endsection
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // وظيفة "تحديد الكل"
-        const selectAllCheckbox = document.getElementById('selectAll');
-        const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    // دالة تمرير المعرف للمودال
+    function prepareDelete(productId) {
+        const form = document.getElementById('confirmDeleteForm');
+        // تأكد من أن هذا الرابط يطابق الـ Route المبرمج في Laravel
+        form.action = `/admin/products/${productId}/delete-image`;
+    }
 
-        selectAllCheckbox.addEventListener('change', function() {
-            userCheckboxes.forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
+    // كود رفع الصور (AJAX) كما هو مع إضافة تصحيح بسيط للكونتينر
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadInputs = document.querySelectorAll('.image-upload-input');
+        uploadInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                let file = this.files[0];
+                if (!file) return;
+
+                let productId = this.getAttribute('data-id');
+                let formData = new FormData();
+                formData.append('image', file);
+
+                let label = document.querySelector('label[for="file-' + productId + '"]');
+                let originalText = label.innerHTML;
+                label.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                label.classList.add('disabled');
+
+                fetch(`/admin/products/${productId}/upload-image`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload(); // أسهل طريقة لتحديث الواجهة بعد الرفع
+                        } else {
+                            alert('خطأ: ' + data.message);
+                            label.innerHTML = originalText;
+                            label.classList.remove('disabled');
+                        }
+                    });
             });
         });
     });
-
-    // وظيفة إرسال الإجراء الجماعي للسيرفر
-    function submitBulkAction(status) {
-        // جمع معرفات (IDs) المستخدمين المحددين
-        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
-        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
-
-        // التحقق من أنه تم تحديد مستخدم واحد على الأقل
-        if (selectedIds.length === 0) {
-            alert('الرجاء تحديد مستخدم واحد على الأقل أولاً.');
-            return;
-        }
-
-        // تأكيد الإجراء من المدير
-        const actionName = status === 1 ? 'تفعيل' : 'تجميد';
-        if (!confirm('هل أنت متأكد أنك تريد ' + actionName + ' الحسابات المحددة؟')) {
-            return;
-        }
-
-        // إرسال الطلب إلى السيرفر
-        fetch('/admin/users/bulk-toggle-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    ids: selectedIds,
-                    activated: status
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // إعادة تحميل الصفحة لرؤية التغييرات فوراً (أو يمكنك تحديث الـ Badges برمجياً)
-                    window.location.reload();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('حدث خطأ أثناء الاتصال بالسيرفر.');
-            });
-    }
 </script>
-
-
-
-
-<!--   Core JS Files   -->
-<script src="../assets/js/core/popper.min.js"></script>
-<script src="../assets/js/core/bootstrap.min.js"></script>
-<script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
-<script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
-<script src="../assets/js/plugins/chartjs.min.js"></script>
-
-<script>
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-        var options = {
-            damping: '0.5'
-        }
-        Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-    }
-</script>
-<!-- Github buttons -->
-<script async defer src="https://buttons.github.io/buttons.js"></script>
-<!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
-<script src="../assets/js/argon-dashboard.min.js?v=2.1.0"></script>
-
-
-
-</html>

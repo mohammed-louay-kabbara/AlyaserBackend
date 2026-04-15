@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
+use App\Services\FcmService;
 use Kreait\Firebase\Messaging\Notification;
 use App\Models\User;
 
@@ -12,6 +13,47 @@ use App\Models\UserNotification;
 
 class NotificationController extends Controller
 {
+    public function Notification()
+    {
+        $users=User::get();
+        return view('Notifications',compact('users'));
+    }
+
+    public function sendNotification(Request $request, FcmService $fcmService)
+{
+    // التحقق من صحة البيانات المدخلة
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'body' => 'required|string',
+        'user_ids' => 'required|array',
+        'user_ids.*' => 'exists:users,id',
+    ]);
+
+    // جلب المستخدمين المحددين فقط من قاعدة البيانات (مع التوكين الخاص بكل مستخدم)
+    $selectedUsers = User::whereIn('id', $request->user_ids)->get();
+
+    $successCount = 0;
+
+    foreach ($selectedUsers as $user) {
+        // افترض أنك تخزن توكين الجهاز في حقل اسمه fcm_token داخل جدول المستخدمين
+        if ($user->fcm_token) {
+            $result = $fcmService->sendAndSaveNotification(
+                $user->id,
+                $user->fcm_token,
+                $request->title,
+                $request->body,
+                'user_app' // أو الوجهة التي تريدها
+            );
+
+            if ($result) {
+                $successCount++;
+            }
+        }
+    }
+
+    return redirect()->back()->with('success', "تم إرسال الإشعار بنجاح لـ {$successCount} مستخدمين.");
+}
+
     public function sendPushNotification(Request $request)
     {
     $token="dBrx1XnKTZ-Qej8J6Zs7r6:APA91bGenYb6yqZzWqWQtqvSWBQVl1CB57tOqo3K4UODaKFbHZ32zessVEdr3sfQQqkN3POSnbZgnYCPDskKRYoTHAzF9G4MS2M6DWnzqvtyGDZ-QxOSMIc";
