@@ -20,7 +20,7 @@ Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->na
 
 // --- المسارات المحمية ---
 // أي مسار داخل هذه المجموعة سيتطلب تسجيل الدخول
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth:web'])->group(function () {
 
     Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
     Route::get('users', [AdminController::class, 'get_users'])->name('users');

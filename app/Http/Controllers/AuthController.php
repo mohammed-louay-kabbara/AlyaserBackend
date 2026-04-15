@@ -20,23 +20,32 @@ class AuthController extends Controller
     }
 
     // 1. تسجيل دخول الأدمن باستخدام الهاتف
-    public function login_admin(Request $request)
-    {
-        $credentials = $request->validate([
-            'phone'    => 'required|string',
-            'password' => 'required',
-        ]);
-        if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'بيانات الدخول غير صحيحة'], 401);
-        }
-        $user = auth()->user();
-        // بما أن الـ role أصبح integer، نفترض أن 1 هو الأدمن
-        if ($user->role != 1) { 
-            return response()->json(['error' => 'غير مصرح لك بالدخول كمسؤول'], 403);
-        }
+use Illuminate\Support\Facades\Auth; // تأكد من استدعاء الكلاس في الأعلى
 
-        return redirect('/dashboard_admin');
+public function login_admin(Request $request)
+{
+    $credentials = $request->validate([
+        'phone'    => 'required|string',
+        'password' => 'required',
+    ]);
+    // نستخدم Auth::attempt الذي يعيد true أو false وينشئ جلسة (Session)
+    if (Auth::attempt($credentials)) {
+        $user = Auth::user();
+        // التحقق من الصلاحية
+        if ($user->role != 1) { 
+            Auth::logout(); // تسجيل خروج فوراً لأنه غير مصرح له
+            return back()->withErrors(['error' => 'غير مصرح لك بالدخول كمسؤول']);
+        }
+        // تحديث معرف الجلسة للحماية من Session Fixation
+        $request->session()->regenerate();
+        return redirect()->intended('/dashboard_admin');
     }
+
+    // في حال فشل تسجيل الدخول
+    return back()->withErrors([
+        'phone' => 'بيانات الدخول غير صحيحة أو غير موجودة.',
+    ]);
+}
     public function me()
     {
         return response()->json(auth()->user(), 200);
