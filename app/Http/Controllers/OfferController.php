@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Offer;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,6 +29,13 @@ class OfferController extends Controller
         return response()->json($offers, 200);
     }
 
+    public function offer_admin()
+    {
+        $offers = Offer::with('product')->get();
+        $products = Product::all(); // إرسال المنتجات للمودال
+        return view('offers', compact('offers', 'products'));  
+    }
+
     // 2. إضافة عرض جديد (Create)
     public function store(Request $request)
     {
@@ -48,7 +56,7 @@ class OfferController extends Controller
             'image'       => $path
         ]);
 
-        return response()->json(['message' => 'تم إضافة العرض بنجاح', 'offer' => $offer], 201);
+        return back();
     }
 
     // 3. عرض عرض واحد بالتفصيل (Read Single)
@@ -82,7 +90,7 @@ class OfferController extends Controller
 
         $offer->update($request->only(['description', 'expires_at', 'product_id']));
 
-        return response()->json(['message' => 'تم تحديث العرض بنجاح', 'offer' => $offer], 200);
+        return back();
     }
 
     // 5. حذف عرض (Delete)
@@ -93,6 +101,6 @@ class OfferController extends Controller
         // حذف ملف الصورة من التخزين
         Storage::disk('public')->delete($offer->image);
         $offer->delete();
-        return response()->json(['message' => 'تم حذف العرض بنجاح'], 200);
+        return back();
     }
 }

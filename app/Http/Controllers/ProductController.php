@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\SearchHistory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class ProductController extends Controller
 {
@@ -63,6 +64,78 @@ class ProductController extends Controller
         
         return view('Products', compact('Products'));
     }
+    public function search_admin(Request $request){
+    $search = $request->input('search');
+    $status = $request->input('stock_status');
+
+    $Products = Product::query()
+        // فلترة بالاسم إذا وجد بحث
+        ->when($search, function ($query, $search) {
+            return $query->where('name', 'LIKE', "%{$search}%");
+        })
+        // فلترة بالحالة (موجود / منتهٍ)
+        ->when($status, function ($query, $status) {
+            if ($status == 'available') {
+                return $query->where('quantity', '>', 0);
+            } elseif ($status == 'out_of_stock') {
+                return $query->where('quantity', '<=', 0);
+            }
+        })
+        ->paginate(15)
+        ->withQueryString(); // مهم جداً للحفاظ على الفلترة عند التنقل بين الصفحات
+    return view('products', compact('Products'));
+    }
+    public function deleteImage($id)
+    {
+        $product = Product::findOrFail($id);
+
+        if ($product->image) {
+            $imagePath = public_path($product->image);
+            if (File::exists($imagePath)) {
+                File::delete($imagePath);
+            }
+            $product->image = null;
+            $product->save();
+
+            // العودة مع رسالة نجاح تظهر في لوحة التحكم
+            return back()->with('success', 'تم حذف الصورة بنجاح');
+        }
+
+        return back()->with('error', 'الصورة غير موجودة');
+    }
+
+    public function uploadImage(Request $request, $id)
+{
+    // التحقق من أن الملف المرفوع هو صورة فعلية وحجمها مناسب
+    $request->validate([
+        'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048'
+    ]);
+
+    $product = Product::findOrFail($id);
+
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        
+        // توليد اسم فريد للصورة لمنع التكرار
+        $filename = time() . '_' . $file->getClientOriginalName();
+        
+        // حفظ الصورة في مجلد public/uploads/products
+        $file->move(public_path('uploads/products'), $filename);
+
+        // تحديث مسار الصورة في قاعدة البيانات
+        $imagePath = 'uploads/products/' . $filename;
+        $product->image = $imagePath;
+        $product->save();
+
+        // إعادة المسار كـ JSON ليقوم الجافاسكربت بعرضها فوراً
+        return response()->json([
+            'success' => true,
+            'image_url' => asset($imagePath)
+        ]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'لم يتم العثور على ملف']);
+}
 
     public function search(Request $request)
     {

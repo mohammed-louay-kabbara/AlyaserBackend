@@ -26,11 +26,9 @@ class AuthController extends Controller
             'phone'    => 'required|string',
             'password' => 'required',
         ]);
-
         if (!$token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'بيانات الدخول غير صحيحة'], 401);
         }
-
         $user = auth()->user();
         // بما أن الـ role أصبح integer، نفترض أن 1 هو الأدمن
         if ($user->role != 1) { 
@@ -167,6 +165,12 @@ class AuthController extends Controller
         return response()->json(['message' => 'تم تنشيط الحساب بنجاح'], 200);
     }
     public function logout()
+    {
+        auth()->logout();
+        return response()->json(['status' => true, 'message' => 'تم تسجيل الخروج']);
+    }
+
+    public function logout_admin()
     {
         auth()->logout();
         return response()->json(['status' => true, 'message' => 'تم تسجيل الخروج']);

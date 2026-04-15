@@ -27,7 +27,6 @@ class CategoryController extends Controller
     public function show_admin(Request $request)
     {
         $query=category::query();
-            // 1. فلترة البحث بالاسم (إذا وجد)
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }

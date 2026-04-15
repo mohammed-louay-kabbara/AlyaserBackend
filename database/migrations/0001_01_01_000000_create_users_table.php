@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('zone');      // حقل المنطقة الجديد
             $table->string('shop_name')->nullable(); // حقل اسم المحل الجديد
             $table->string('address');
-            $table->integer('role')->default(2); // نفترض 1 للأدمن و 2 للمستخدم
+            $table->integer('role')->default(2); //و 3 للمستودع و نفترض 1 للأدمن و 2 للمستخدم
             $table->boolean('activated')->default(false);
             $table->rememberToken();
             $table->timestamps();

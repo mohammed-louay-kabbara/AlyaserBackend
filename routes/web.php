@@ -6,6 +6,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\OfferController;
+use App\Http\Controllers\warehousecontroller;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -17,8 +20,20 @@ Route::get('users',[AdminController::class,'get_users'])->name('users');
 Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
 Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
 Route::resource('Category', CategoryController::class);
+Route::resource('warehouse', warehousecontroller::class);
+Route::get('Notifications', [NotificationController::class,'Notification'])->name('Notifications');
+Route::post('sendNotification', [NotificationController::class,'sendNotification'])->name('Notifications.send');
+Route::post('logout', [AuthController::class,'logout']);
 Route::get('categories',[CategoryController::class,'show_admin'])->name('categories');
 Route::get('products',[ProductController::class,'product_admin'])->name('Products');
+Route::get('Product-search',[ProductController::class,'search_admin'])->name('Product-search');
+Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
+Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
+Route::get('offers',[OfferController::class,'offer_admin'])->name('offers');
+Route::post('Offer.store',[OfferController::class,'store'])->name('Offer.store');
+Route::delete('Offer_destroy/{id}',[OfferController::class,'destroy'])->name('Offer.destroy');
+Route::put('Offer_update/{id}',[OfferController::class,'update'])->name('Offer.update');
+
 
 Route::get('/export-real-invoice', function () {
     // الترتيب حسب إعدادات الأمين: الرمز ثم Tab ثم الكمية ثم Tab ثم رقم الوحدة ثم Tab ثم السعر
