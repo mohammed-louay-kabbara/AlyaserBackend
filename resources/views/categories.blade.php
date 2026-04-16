@@ -41,11 +41,13 @@
                                                         aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form action="{{ route('Category.store') }}" method="post">
+                                                    <form action="{{ route('Category.store') }}" method="POST"
+                                                        enctype="multipart/form-data">
                                                         @csrf
-
                                                         <input type="text" placeholder="ضع هنا اسم الصنف" name="name"
                                                             class="form-control" id="">
+                                                        <input type="file" name="image" class="form-control"
+                                                            id="">
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary"
@@ -67,6 +69,8 @@
                                                         <th class="">
                                                             الاسم</th>
                                                         <th class="">
+                                                            الصورة</th>
+                                                        <th class="">
                                                         </th>
                                                         <th class="">
                                                         </th>
@@ -80,6 +84,14 @@
                                                                 <div class="d-flex px-2 py-1">
                                                                     <div class="d-flex flex-column justify-content-center">
                                                                         <h6 class="mb-0 ">{{ $u->name }}</h6>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="d-flex px-2 py-1">
+                                                                    <div class="d-flex flex-column justify-content-center">
+                                                                        <img src="{{ asset('storage/' . $u->image) }}"
+                                                                            width="120px" alt="category image">
                                                                     </div>
                                                                 </div>
                                                             </td>
@@ -112,7 +124,11 @@
                                                                                         placeholder="ضع هنا اسم الصنف"
                                                                                         name="name"
                                                                                         value="{{ $u->name }}"
-                                                                                        class="form-control" id="">
+                                                                                        class="form-control"
+                                                                                        id="">
+                                                                                    <input type="file" name="image"
+                                                                                        class="form-control"
+                                                                                        id="">
                                                                             </div>
                                                                             <div class="modal-footer">
                                                                                 <button type="button"
