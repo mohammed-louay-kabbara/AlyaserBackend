@@ -18,6 +18,14 @@ class AuthController extends Controller
         User::where('id',Auth::id())->update(['fcm_token' => $request->fcm_token]);
         return response()->json(['تم الحفظ بنجاح'], 200);
     }
+    public function logout_web(Request $request)
+{
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    
+    return redirect('/');
+}
 
 public function login_admin(Request $request)
 {

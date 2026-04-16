@@ -95,7 +95,10 @@
       </div>
 
       <div class="">
-          <button style="width: 90%; margin: 10px" type="button" class="btn btn-danger">تسجيل الخروج</button>
+        <form action="{{ route('logout_web') }}" method="post">
+            @csrf
+          <button type="submit" style="width: 90%; margin: 10px" type="button" class="btn btn-danger">تسجيل الخروج</button>
+        </form>
           <button style="width: 90%; margin: 10px" type="button" class="btn btn-primary">تعديل الملف الشخصي</button>
       </div>
   </aside>

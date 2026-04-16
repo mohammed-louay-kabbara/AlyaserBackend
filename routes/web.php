@@ -17,6 +17,7 @@ Route::get('/', function () {
 
 Route::post('login_admin', [AuthController::class, 'login_admin'])->name('login_admin');
 Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
+Route::post('/logout_web', [AuthController::class, 'logout_web'])->name('logout_web');
 
 // --- المسارات المحمية ---
 // أي مسار داخل هذه المجموعة سيتطلب تسجيل الدخول
