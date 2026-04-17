@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\warehousecontroller;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderController;
 
 // مسارات متاحة للجميع (بدون تسجيل دخول)
 Route::get('/', function () {
@@ -18,34 +19,34 @@ Route::get('/', function () {
 Route::post('login_admin', [AuthController::class, 'login_admin'])->name('login_admin');
 Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
 Route::post('/logout_web', [AuthController::class, 'logout_web'])->name('logout_web');
-
 // --- المسارات المحمية ---
 // أي مسار داخل هذه المجموعة سيتطلب تسجيل الدخول
 Route::middleware(['auth:web'])->group(function () {
-
     Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
     Route::get('users', [AdminController::class, 'get_users'])->name('users');
     Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
-    
+    Route::post('add_order', [OrderController::class,'store'])->name('add_order');
     Route::resource('Category', CategoryController::class);
     Route::resource('warehouse', warehousecontroller::class);
-    
     Route::get('Notifications', [NotificationController::class, 'Notification'])->name('Notifications');
     Route::post('sendNotification', [NotificationController::class, 'sendNotification'])->name('Notifications.send');
-    
     Route::get('categories', [CategoryController::class, 'show_admin'])->name('categories');
     Route::get('products', [ProductController::class, 'product_admin'])->name('Products');
     Route::get('Product-search', [ProductController::class, 'search_admin'])->name('Product-search');
     Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
     Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
-    
     Route::get('offers', [OfferController::class, 'offer_admin'])->name('offers');
     Route::post('Offer.store', [OfferController::class, 'store'])->name('Offer.store');
     Route::delete('Offer_destroy/{id}', [OfferController::class, 'destroy'])->name('Offer.destroy');
     Route::put('Offer_update/{id}', [OfferController::class, 'update'])->name('Offer.update');
-    
     Route::get('/activated/{id}', [AuthController::class, 'activated']);
-    
+    Route::get('/get_order', [OrderController::class, 'get_order'])->name('get_order');
+    Route::post('/sendToWarehouse/{id}', [OrderController::class, 'sendToWarehouse'])->name('Order.sendToWarehouse');
+    Route::delete('/Order_destroy/{id}', [OrderController::class, 'destroy'])->name('Order.destroy');
+    // Route::delete('/Order_update/{id}', [OrderController::class, 'update'])->name('Order.update');
+    Route::post('/orders/bulk-send', [OrderController::class, 'bulkSendToWarehouse'])->name('Order.bulkSend');
+    Route::get('/orders/print', [OrderController::class, 'printOrders'])->name('Order.print');
+    Route::put('/order_update/{id}', [OrderController::class, 'update'])->name('Order.update');
     // مسار تسجيل الخروج يجب أن يكون محمياً أيضاً
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 });

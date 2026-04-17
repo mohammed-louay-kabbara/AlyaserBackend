@@ -6,15 +6,109 @@ use App\Models\cart_item;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\OrderItem;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-public function store(Request $request)
+
+public function update(Request $request, $id)
+{
+    $order = Order::findOrFail($id);
+
+    // 1. تحديث البيانات الأساسية للطلب
+    $order->notes = $request->notes;
+    // إذا تغيرت الطلبية نعتبرها غير متزامنة مع الأمين ليتم إرسالها من جديد
+    $order->is_synced = false; 
+
+    $submittedItemIds = []; // مصفوفة لتخزين معرفات العناصر التي جاءت من الفورم
+    $newTotalAmount = 0;    // لحساب الإجمالي الجديد للطلب
+
+    // 2. معالجة المنتجات (Items)
+    if ($request->has('items')) {
+        foreach ($request->items as $itemData) {
+            
+            // حساب المجموع الفرعي لهذا العنصر
+            $subTotal = $itemData['quantity'] * $itemData['unit_price'];
+            $newTotalAmount += $subTotal;
+
+            if (isset($itemData['item_id']) && $itemData['item_id'] !== 'new') {
+                // أ - تحديث منتج موجود مسبقاً
+                $orderItem = OrderItem::find($itemData['item_id']);
+                if ($orderItem) {
+                    $orderItem->update([
+                        'product_id'    => $itemData['product_id'],
+                        'purchase_type' => $itemData['purchase_type'],
+                        'quantity'      => $itemData['quantity'],
+                        'unit_price'    => $itemData['unit_price'],
+                        'sub_total'     => $subTotal,
+                    ]);
+                    $submittedItemIds[] = $orderItem->id;
+                }
+            } else {
+                // ب - إضافة منتج جديد تمت إضافته من زر "إضافة منتج جديد"
+                $newItem = $order->items()->create([
+                    'product_id'    => $itemData['product_id'],
+                    'purchase_type' => $itemData['purchase_type'],
+                    'quantity'      => $itemData['quantity'],
+                    'unit_price'    => $itemData['unit_price'],
+                    'sub_total'     => $subTotal,
+                ]);
+                $submittedItemIds[] = $newItem->id;
+            }
+        }
+    }
+
+    // 3. حذف المنتجات التي كانت في الطلب وتم مسحها من الفورم
+    // نحذف أي عنصر تابع للطلب ولا يوجد الـ ID الخاص به ضمن المصفوفة التي أرسلناها
+    $order->items()->whereNotIn('id', $submittedItemIds)->delete();
+
+    // 4. تحديث الإجمالي الكلي للطلبية وحفظها
+    $order->total_amount = $newTotalAmount;
+    $order->save();
+
+    return back()->with('success', 'تم تحديث الطلبية ومحتوياتها بنجاح.');
+}
+
+public function get_order(Request $request)
+{
+    $products = Product::select('id', 'name')->get();
+    // جلب الطلبات مع بيانات الزبون لتجنب مشكلة (N+1 Queries)
+    $query = Order::with('user')->orderBy('created_at', 'desc');
+    // 1. البحث باستخدام اسم الزبون
+    if ($request->filled('search')) {
+        $query->whereHas('user', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%');
+        });
+    }
+    // 2. الفرز باستخدام التاريخ
+    if ($request->filled('date')) {
+        $query->whereDate('created_at', $request->date);
+    }
+    // 3. الفرز باستخدام حالة الطلب
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+    $warehouses = User::where('role', 3)->get();
+    $orders = $query->paginate(20); 
+    return view('orders', compact('orders', 'warehouses','products'));
+}
+public function sendToWarehouse($id)
+{
+    $order = Order::findOrFail($id);
+    
+    // تغيير الحالة لضمان مزامنتها كطلب جديد إلى المستودع أو النظام المحاسبي
+    $order->update([
+        'is_synced' => false, // لإعادة التقاطها بواسطة جدولة المزامنة
+        'status' => 'pending' // أو أي حالة تعتمدها للمستودع
+    ]);
+
+    return back()->with('success', 'تم توجيه الطلب للمستودع وسيتم مزامنته قريباً.');
+}
+    public function store(Request $request)
     {
         $request->validate([
             'items' => 'required|array|min:1',
@@ -76,7 +170,6 @@ public function store(Request $request)
     }
     public function updateOrder(Request $request, $orderId)
     {
-        // 1. التحقق من صحة البيانات المرسلة أولاً
         $request->validate([
             'notes'                 => 'nullable|string',
             'items'                 => 'required|array|min:1',
@@ -84,8 +177,6 @@ public function store(Request $request)
             'items.*.quantity'      => 'required|numeric|min:0.1',
             'items.*.purchase_type' => 'required|string',
         ]);
-
-        // 2. جلب الطلب والتأكد من أنه يخص المستخدم الحالي
         $order = Order::where('id', $orderId)
                       ->where('user_id', auth()->id())
                       ->first();
@@ -175,6 +266,50 @@ public function store(Request $request)
                 'error'   => config('app.debug') ? $e->getMessage() : null // إظهار الخطأ الدقيق فقط في بيئة التطوير
             ], 500);
         }
+    }
+
+    public function bulkSendToWarehouse(Request $request)
+{
+    $request->validate([
+        'order_ids' => 'required|string', // ستأتي كـ string مفصولة بفواصل
+        'warehouse_id' => 'required|exists:users,id'
+    ]);
+
+    // تحويل النص إلى مصفوفة أرقام
+    $ids = explode(',', $request->order_ids);
+
+    // تحديث الطلبات المحددة
+    // ملاحظة: يُفضل إضافة عمود 'warehouse_id' لجدول orders لتخزين المستودع المختار
+    Order::whereIn('id', $ids)->update([
+        'is_synced' => false, // لإعادة إرسالها للأمين إذا لزم الأمر
+        'status' => 'confirmed',
+        'warehouse_id' => $request->warehouse_id // تأكد من إضافة هذا العمود لقاعدة البيانات وفي موديل Order
+    ]);
+
+    return back()->with('success', 'تم إرسال الطلبات المحددة إلى المستودع بنجاح.');
+}
+
+// 3. دالة طباعة الطلبات المحددة
+public function printOrders(Request $request)
+{
+    if (!$request->has('ids')) {
+        return back()->with('error', 'لم يتم تحديد أي طلبات للطباعة.');
+    }
+
+    $ids = explode(',', $request->ids);
+    
+    // جلب الطلبات مع تفاصيلها (الزبون، والعناصر المطلوبة)
+    // افترض أن لديك علاقة اسمها 'items' في موديل Order لجلب OrderItem
+    $orders = Order::with(['user', 'items'])->whereIn('id', $ids)->get();
+
+    return view('print_orders', compact('orders'));
+}
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
+        // 2. حذف الطلب نفسه
+        $order->delete();
+        return back()->with('success', 'تم حذف الطلب وجميع محتوياته بنجاح.');
     }
 
 }
