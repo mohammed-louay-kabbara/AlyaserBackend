@@ -323,18 +323,12 @@
                                         class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
                                         <div class="d-flex align-items-center">
                                             <div class="icon icon-shape icon-sm me-3 bg-gradient-dark shadow text-center">
-                                                <i class="ni ni-mobile-button text-white opacity-10"></i>
+                                                 <img src="{{ asset('storage/' . $top->product->image) }}" alt="">
                                             </div>
                                             <div class="d-flex flex-column">
-                                                <h6 class="mb-1 text-dark text-sm"></h6>
-                                                <span class="text-xs">250 in stock, <span class="font-weight-bold">346+
-                                                        sold</span></span>
+                                                <h6 class="mb-1 text-dark text-sm">{{ $top->product->name }}</h6>
+
                                             </div>
-                                        </div>
-                                        <div class="d-flex">
-                                            <button
-                                                class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto"><i
-                                                    class="ni ni-bold-right" aria-hidden="true"></i></button>
                                         </div>
                                     </li>
                                     

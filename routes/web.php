@@ -32,7 +32,9 @@ Route::middleware(['auth:web'])->group(function () {
     Route::post('sendNotification', [NotificationController::class, 'sendNotification'])->name('Notifications.send');
     Route::get('categories', [CategoryController::class, 'show_admin'])->name('categories');
     Route::get('products', [ProductController::class, 'product_admin'])->name('Products');
+    Route::post('/products/sync-ameen', [ProductController::class, 'syncWithAmeen'])->name('products.sync_ameen');
     Route::get('Product-search', [ProductController::class, 'search_admin'])->name('Product-search');
+    Route::get('orders_user/{id}', [OrderController::class, 'orders_user'])->name('orders_user');
     Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
     Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
     Route::get('offers', [OfferController::class, 'offer_admin'])->name('offers');
@@ -41,6 +43,8 @@ Route::middleware(['auth:web'])->group(function () {
     Route::put('Offer_update/{id}', [OfferController::class, 'update'])->name('Offer.update');
     Route::get('/activated/{id}', [AuthController::class, 'activated']);
     Route::get('/get_order', [OrderController::class, 'get_order'])->name('get_order');
+    Route::get('/exportExcel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
+    Route::get('/exportPdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
     Route::post('/sendToWarehouse/{id}', [OrderController::class, 'sendToWarehouse'])->name('Order.sendToWarehouse');
     Route::delete('/Order_destroy/{id}', [OrderController::class, 'destroy'])->name('Order.destroy');
     // Route::delete('/Order_update/{id}', [OrderController::class, 'update'])->name('Order.update');

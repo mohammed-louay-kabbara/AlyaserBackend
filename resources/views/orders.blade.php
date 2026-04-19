@@ -19,7 +19,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="card-body">
                             <form action="{{ url()->current() }}" method="GET" class="mb-4">
                                 <div class="row align-items-center">
