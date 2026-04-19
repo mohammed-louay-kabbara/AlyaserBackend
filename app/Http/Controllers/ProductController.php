@@ -5,35 +5,70 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\SearchHistory;
+use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\ProductsExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use App\Models\category;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function addproduct(){
         Product::create([
             'name' => 'سكر',
             'retail_price' => 10000,
             'wholesale_price' => 100000,
             'quantity' => 10,
-        
         ]);
         return response()->json('تم الحفظ بنجاح', 200);
     }
+    public function syncWithAmeen(Request $request)
+    {
+        try {
+            // تمديد وقت التنفيذ لتجنب الـ Timeout مع البيانات الضخمة
+            set_time_limit(0);
+            $ameenProducts = DB::connection('ameen')
+                ->table('mt000')
+                ->select('GUID', 'Name', 'Retail', 'Whole', 'Qty')
+                ->where('bHide', 0)
+                ->get();
+
+            $count = 0;
+            foreach ($ameenProducts as $product) {
+                Product::updateOrCreate(
+                    ['ameen_guid' => $product->GUID],
+                    [
+                        'name'            => $product->Name,
+                        'retail_price'    => $product->Retail ?? 0,
+                        'wholesale_price' => $product->Whole ?? 0,
+                        'quantity'        => $product->Qty ?? 0,
+                    ]
+                );
+                $count++;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "تمت المزامنة بنجاح! تم استيراد وتحديث {$count} منتج."
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المزامنة: ' . $e->getMessage()
+            ], 500);
+        }
+    }
     public function index()
     {
-        $products = Product::paginate(20);
-            
+        $products = Product::where('quantity','!=',0)->paginate(20);
         return response()->json($products, 200);
     }
     public function getSearchScreenData()
     {
         $recentSearches = [];
-
         // 1. جلب عمليات البحث الأخيرة للمستخدم الحالي (أحدث 5 عمليات)
         if (Auth::check()) {
             $recentSearches = SearchHistory::where('user_id', Auth::id())
@@ -61,12 +96,14 @@ class ProductController extends Controller
     {
         // جلب المنتجات مرتبة من الأحدث إلى الأقدم مع تقسيمها لصفحات
         $Products = Product::latest()->paginate(20); 
-        
-        return view('Products', compact('Products'));
+        $categories=category::get();
+        return view('Products', compact('Products','categories'));
     }
     public function search_admin(Request $request){
+    $categories=category::get();
     $search = $request->input('search');
     $status = $request->input('stock_status');
+    $category = $request->input('category_id');
 
     $Products = Product::query()
         // فلترة بالاسم إذا وجد بحث
@@ -80,10 +117,12 @@ class ProductController extends Controller
             } elseif ($status == 'out_of_stock') {
                 return $query->where('quantity', '<=', 0);
             }
+        })->when($category, function ($query, $category) {
+            return $query->where('category_id', $category);
         })
-        ->paginate(15)
+        ->paginate(20)
         ->withQueryString(); // مهم جداً للحفاظ على الفلترة عند التنقل بين الصفحات
-    return view('products', compact('Products'));
+    return view('products', compact('Products','categories'));
     }
     public function deleteImage($id)
     {
@@ -206,5 +245,29 @@ class ProductController extends Controller
         'status' => true,
         'message' => 'تم الحذف بنجاح'
     ], 200);
+}
+public function exportExcel() 
+{
+    return Excel::download(new ProductsExport, 'products_list.xlsx');
+}
+
+public function exportPdf()
+{
+    $products = Product::with('category')->get();
+
+    $html = view('reports.products_pdf', compact('products'))->render();
+
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'default_font' => 'cairo',
+        'directionality' => 'rtl'
+    ]);
+
+    $mpdf->WriteHTML($html);
+
+    return response($mpdf->Output('products.pdf', 'S'))
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', 'attachment; filename="products.pdf"');
 }
 }

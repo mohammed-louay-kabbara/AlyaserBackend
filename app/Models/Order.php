@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Order extends Model
-{
-    protected $fillable = [
-        'user_id', 'total_amount', 
-        'status', 'notes', 'ameen_guid', 'is_synced'
-    ];
+    class Order extends Model
+    {
+        protected $fillable = [
+            'user_id', 'total_amount', 
+            'status', 'notes', 'ameen_guid', 'is_synced'
+        ];
 
     public function items()
     {

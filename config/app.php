@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Facade; // أضف هذا السطر
+
 return [
 
     /*
@@ -122,5 +124,8 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    'aliases' => Facade::defaultAliases()->merge([
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+    ])->toArray(),
 
 ];

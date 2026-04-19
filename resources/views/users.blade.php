@@ -106,7 +106,7 @@
                                                             <td>
                                                                 <div class="d-flex px-2 py-1">
                                                                     <div class="d-flex flex-column justify-content-center">
-                                                                        <h6 class="mb-0 ">{{ $u->name }}</h6>
+                                                                        <a href="{{ route('orders_user',$u->id) }}" class="mb-0 ">{{ $u->name }}</h6>
                                                                     </div>
                                                                 </div>
                                                             </td>

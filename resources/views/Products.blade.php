@@ -20,8 +20,21 @@
                                                     placeholder="ابحث بالاسم..." value="{{ request('search') }}">
                                             </div>
                                         </div>
+                                        <div class="col-md-2">
+                                            <div class="input-group">
+                                                <span class="input-group-text text-body"><i
+                                                        class="fas fa-search"></i></span>
+                                                <select class="form-control" name="category_id" placeholder="ابحث بالاسم..."
+                                                    value="{{ request('search') }}">
+                                                    <option value="">الكل</option>
+                                                    @foreach ($categories as $c)
+                                                        <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="btn-group" role="group" aria-label="Filter products">
                                                 <input type="radio" class="btn-check" name="stock_status" id="all"
                                                     value="all"
@@ -49,6 +62,17 @@
                                         </div>
                                     </div>
                                 </form>
+                            </div>
+                            <div class="mb-3">
+                                <a href="{{ route('products.export.excel') }}" class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> تصدير Excel
+                                </a>
+                                <a href="{{ route('products.export.pdf') }}" class="btn btn-danger">
+                                    <i class="fas fa-file-pdf"></i> تصدير PDF
+                                </a>
+                                <button id="syncAmeenBtn" class="btn btn-primary">
+                                    <i class="fas fa-sync-alt"></i> مزامنة مع الأمين
+                                </button>
                             </div>
 
                             <div class="table-responsive p-0">
@@ -159,7 +183,6 @@
             </div>
         </div>
     </main>
-@endsection
 <script>
     // دالة تمرير المعرف للمودال
     function prepareDelete(productId) {
@@ -206,3 +229,47 @@
         });
     });
 </script>
+<script src="../assets/js/core/popper.min.js"></script>
+<script src="../assets/js/core/bootstrap.min.js"></script>
+<script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+<script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+<script src="../assets/js/plugins/chartjs.min.js"></script>
+
+<script>
+    document.getElementById('syncAmeenBtn').addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        
+        // تغيير شكل الزر لإظهار حالة التحميل
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المزامنة... الرجاء الانتظار';
+
+        fetch('{{ route("products.sync_ameen") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // إظهار رسالة نجاح
+                alert(data.message); 
+                // تحديث الصفحة لعرض المنتجات الجديدة
+                location.reload(); 
+            } else {
+                alert(data.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            alert('حدث خطأ في الاتصال بالخادم.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+</script>
+@endsection

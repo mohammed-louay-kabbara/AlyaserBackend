@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function orders_user($user_id)
+    {
+        $Orders=Order::with('items')->where('user_id',$user_id)->get();
+        return view('orders_user',compact('Orders'));
+    }
 
 public function update(Request $request, $id)
 {
