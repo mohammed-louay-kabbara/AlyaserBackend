@@ -76,10 +76,9 @@
                                                             </td>
                                                             <td class="align-middle text-center text-sm">
                                                                 <div class="d-flex">
-                                                                    <form action="" method="get">
-                                                                        <button class="btn btn-primary">تفاصيل
-                                                                            الطلب</button>
-                                                                    </form>
+                                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal{{ $u->id }}">
+                                                                            تفاصيل الطلب
+                                                                        </button>
                                                                     <form action="{{ route('Order.destroy', $u->id) }}"
                                                                         method="post"
                                                                         onsubmit="return confirm('هل أنت متأكد من حذف هذا الصنف؟ لا يمكن التراجع عن هذه العملية!');">
@@ -91,44 +90,58 @@
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                        <div class="modal fade" id="exampleModal{{ $u->id }}"
+                                                    
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                            @foreach ($Orders as $u)
+                                                <div class="modal fade" id="exampleModal{{ $u->id }}"
                                                             tabindex="-1" aria-labelledby="exampleModalLabel"
                                                             aria-hidden="true">
                                                             <div class="modal-dialog">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header">
                                                                         <h5 class="modal-title" id="exampleModalLabel">
-                                                                             تفاصيل 
+                                                                            تفاصيل الطلب
                                                                         </h5>
                                                                         <button type="button" class="btn-close"
                                                                             data-bs-dismiss="modal"
                                                                             aria-label="Close"></button>
                                                                     </div>
                                                                     <div class="modal-body">
-                                                                        <form action="{{ route('forgot-password') }}"
-                                                                            method="post">
-                                                                            @csrf
-                                                                            <input type="hidden" name="user_id"
-                                                                                value="{{ $u->id }}">
-                                                                            <input type="text"
-                                                                                placeholder="ضع هنا كلمة المرور الجديدة"
-                                                                                name="password" class="form-control"
-                                                                                id="">
+                                                                        <div class="table-responsive">
+                                                                            <table class="table table-striped">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th>اسم المنتج</th>
+                                                                                        <th>نوع الشراء</th>
+                                                                                        <th>الكمية</th>
+                                                                                        <th>السعر الواحد</th>
+                                                                                        <th>الإجمالي</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    @foreach($u->items as $item)
+                                                                                        <tr>
+                                                                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                                                                            <td>{{ $item->purchase_type }}</td>
+                                                                                            <td>{{ $item->quantity }}</td>
+                                                                                            <td>{{ number_format($item->unit_price, 2) }}</td>
+                                                                                            <td>{{ number_format($item->sub_total, 2) }}</td>
+                                                                                        </tr>
+                                                                                    @endforeach
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
                                                                     </div>
                                                                     <div class="modal-footer">
                                                                         <button type="button" class="btn btn-secondary"
                                                                             data-bs-dismiss="modal">إغلاق</button>
-                                                                        <button type="submit" class="btn "
-                                                                            style="background-color: #990a24; color:#fff">
-                                                                            حفظ</button>
-                                                                        </form>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+                                                        @endforeach
                                         </div>
                                     </div>
                                 </div>

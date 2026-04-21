@@ -10,6 +10,17 @@
                             <h6>إرسال إشعارات للمستخدمين</h6>
                         </div>
                         <div class="card-body">
+                            @if(session('success'))
+                                <div class="alert alert-success">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+                            @if(session('error'))
+                                <div class="alert alert-danger">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+                            
                             <form action="{{ route('Notifications.send') }}" method="POST" id="notificationForm">
                                 @csrf
                                 
@@ -42,7 +53,7 @@
                                                     اسم المستخدم
                                                 </th>
                                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                    البريد الإلكتروني
+                                                   رقم الهاتف
                                                 </th>
                                             </tr>
                                         </thead>
@@ -57,12 +68,14 @@
                                                     <td>
                                                         <div class="d-flex px-2 py-1">
                                                             <div class="d-flex flex-column justify-content-center">
-                                                                <h6 class="mb-0 text-sm">{{ $u->name }}</h6>
+                                                                <a href="{{ route('user.notifications', $u->id) }}">
+                                                                    <h6 class="mb-0 text-sm">{{ $u->name }}</h6>
+                                                                </a>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <p class="text-xs font-weight-bold mb-0">{{ $u->email }}</p>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ $u->phone }}</p>
                                                     </td>
                                                 </tr>
                                             @endforeach

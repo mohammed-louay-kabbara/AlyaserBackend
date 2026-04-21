@@ -117,18 +117,43 @@
                                                             data-bs-target="#editModal{{ $order->id }}" title="تعديل">
                                                             تعجيل الطلب
                                                         </button>
-
-                                                        <form action="{{ route('Order.destroy', $order->id) }}"
-                                                            method="POST"
-                                                            onsubmit="return confirm('هل أنت متأكد من حذف هذه الطلبية نهائياً؟');">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-danger mb-0"
-                                                                title="حذف">حذف</button>
-                                                        </form>
+                                                        <button type="button" class="btn btn-sm btn-danger mb-0" 
+                                                                title="حذف" 
+                                                                onclick="openDeleteModal('{{ route('Order.destroy', $order->id) }}')">
+                                                            حذف
+                                                        </button>
                                                     </div>
                                                 </td>
-
+                                                <div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-labelledby="deleteOrderModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="deleteOrderModalLabel">تأكيد حذف الطلب</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            
+                                                            <form id="deleteOrderForm" method="POST" action="">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                
+                                                                <div class="modal-body text-start">
+                                                                    <p class="text-danger fw-bold">هل أنت متأكد من حذف هذا الطلب نهائياً؟</p>
+                                                                    
+                                                                    <div class="form-group mt-3">
+                                                                        <label for="deletion_reason" class="form-control-label">سبب الحذف (اختياري):</label>
+                                                                        <textarea class="form-control" name="deletion_reason" id="deletion_reason" rows="3" 
+                                                                                placeholder="إذا قمت بكتابة سبب، سيتم إرسال إشعار للمستخدم..."></textarea>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                                    <button type="submit" class="btn btn-danger">نعم، احذف الطلب</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -334,6 +359,23 @@
 <script src="../assets/js/plugins/chartjs.min.js"></script>
 
 <script>
+    function openDeleteModal(actionUrl) {
+        // 1. جلب الـ Form داخل الـ Modal
+        const form = document.getElementById('deleteOrderForm');
+        
+        // 2. تحديث مسار الـ Action ليتوافق مع الطلب المراد حذفه
+        form.action = actionUrl;
+        
+        // 3. تفريغ حقل السبب (تحسباً لعمليات الحذف المتتالية)
+        document.getElementById('deletion_reason').value = '';
+        
+        // 4. فتح الـ Modal (باستخدام Bootstrap 5)
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteOrderModal'));
+        deleteModal.show();
+    }
+</script>
+
+<script>
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {
         var options = {
@@ -409,4 +451,5 @@
             }
         }
     });
+    
 </script>

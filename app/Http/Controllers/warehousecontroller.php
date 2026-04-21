@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Order;
 
 
 class warehousecontroller extends Controller
@@ -22,6 +23,11 @@ class warehousecontroller extends Controller
             ->get();
             
         return view('warehouses', compact('warehouses'));
+    }
+    public function show_orders($id)
+    {
+        $Orders = Order::where('warehouse_id', $id)->get();
+        return view('warehouse_show', compact('Orders'));
     }
 
     public function create()
@@ -57,10 +63,7 @@ class warehousecontroller extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-        //
-    }
+
 
     /**
      * Show the form for editing the specified resource.
