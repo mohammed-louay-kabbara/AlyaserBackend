@@ -63,7 +63,7 @@ class ProductController extends Controller
     }
     public function index()
     {
-        $products = Product::where('retail_price','!=',0)->paginate(20);
+        $products = Product::where('retail_price','!=',0)->where('wholesale_price','!=',0)->paginate(20);
         return response()->json($products, 200);
     }
     public function getSearchScreenData()
