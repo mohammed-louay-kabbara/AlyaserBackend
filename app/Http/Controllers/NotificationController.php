@@ -18,6 +18,7 @@ class NotificationController extends Controller
         $users=User::get();
         return view('Notifications',compact('users'));
     }
+    
 
     public function sendNotification(Request $request, FcmService $fcmService)
 {
@@ -42,7 +43,7 @@ class NotificationController extends Controller
                 $user->fcm_token,
                 $request->title,
                 $request->body,
-                'user_app' // أو الوجهة التي تريدها
+                '' // أو الوجهة التي تريدها
             );
 
             if ($result) {
@@ -53,6 +54,12 @@ class NotificationController extends Controller
 
     return redirect()->back()->with('success', "تم إرسال الإشعار بنجاح لـ {$successCount} مستخدمين.");
 }
+    public function userNotifications($id)
+    {
+        $user = User::find($id);
+        $notifications = $user->notifications()->get();
+        return view('user_notifications', compact('notifications'));
+    }
 
     public function sendPushNotification(Request $request)
     {

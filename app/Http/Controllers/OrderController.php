@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Services\FcmService;
 
 class OrderController extends Controller
 {
@@ -23,12 +24,9 @@ class OrderController extends Controller
 public function update(Request $request, $id)
 {
     $order = Order::findOrFail($id);
-
-    // 1. تحديث البيانات الأساسية للطلب
     $order->notes = $request->notes;
     // إذا تغيرت الطلبية نعتبرها غير متزامنة مع الأمين ليتم إرسالها من جديد
     $order->is_synced = false; 
-
     $submittedItemIds = []; // مصفوفة لتخزين معرفات العناصر التي جاءت من الفورم
     $newTotalAmount = 0;    // لحساب الإجمالي الجديد للطلب
 
@@ -309,9 +307,20 @@ public function printOrders(Request $request)
 
     return view('print_orders', compact('orders'));
 }
-    public function destroy($id)
+    public function destroy(Request $request, $id,FcmService $fcmService)
     {
-        $order = Order::findOrFail($id);
+          $order=Order::findOrFail($id);
+        if ($request->deletion_reason) {
+            if ($order->user->fcm_token) {
+                $fcmService->sendAndSaveNotification(
+                $order->user->id,
+                $order->user->fcm_token, 
+                'تم حذف طلبك', 
+                $request->deletion_reason,
+                'order'
+            );
+        }
+        }
         // 2. حذف الطلب نفسه
         $order->delete();
         return back()->with('success', 'تم حذف الطلب وجميع محتوياته بنجاح.');

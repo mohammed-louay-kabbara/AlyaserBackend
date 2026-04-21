@@ -19,6 +19,7 @@ Route::get('/', function () {
 Route::post('login_admin', [AuthController::class, 'login_admin'])->name('login_admin');
 Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
 Route::post('/logout_web', [AuthController::class, 'logout_web'])->name('logout_web');
+Route::get('warehouse/{id}', [warehousecontroller::class, 'show_orders'])->name('warehouse.orders');
 // --- المسارات المحمية ---
 // أي مسار داخل هذه المجموعة سيتطلب تسجيل الدخول
 Route::middleware(['auth:web'])->group(function () {
@@ -29,6 +30,8 @@ Route::middleware(['auth:web'])->group(function () {
     Route::resource('Category', CategoryController::class);
     Route::resource('warehouse', warehousecontroller::class);
     Route::get('Notifications', [NotificationController::class, 'Notification'])->name('Notifications');
+    Route::get('notifications/{id}', [NotificationController::class, 'userNotifications'])->name('user.notifications');
+    Route::post('warehouse/notifications', [NotificationController::class, 'sendWarehouseNotification'])->name('warehouse.notifications');
     Route::post('sendNotification', [NotificationController::class, 'sendNotification'])->name('Notifications.send');
     Route::get('categories', [CategoryController::class, 'show_admin'])->name('categories');
     Route::get('products', [ProductController::class, 'product_admin'])->name('Products');
