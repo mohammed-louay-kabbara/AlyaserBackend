@@ -7,6 +7,7 @@ use App\Models\cart_item;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Offer;
 
 class CartItemController extends Controller
 {
@@ -20,34 +21,46 @@ class CartItemController extends Controller
     }
 
     public function store(Request $request)
-    {
-   
-        $request->validate([
-            'product_id'    => 'required|exists:products,id',
-            'purchase_type' => 'required',
-        ]);
+{
+    // التحقق من وجود أحد المعرفين (إما منتج أو عرض)
+    $request->validate([
+        'product_id'    => 'required_without:offer_id|exists:products,id',
+        'offer_id'      => 'required_without:product_id|exists:offers,id',
+        'purchase_type' => 'required', // في حال كان عرضاً، يمكن تجاهل هذا أو استخدامه كـ "عرض"
+    ]);
 
+    $userId = Auth::id();
+    $price = 0;
+    $productId = $request->product_id;
+    $offerId = $request->offer_id;
 
-        $product = Product::findOrFail($request->product_id);
-
+    if ($productId) {
+        // إذا كان منتجاً عادياً
+        $product = Product::findOrFail($productId);
         $price = ($request->purchase_type == 'طرد') 
                  ? $product->wholesale_price 
                  : $product->retail_price;
-
-        // التحقق إذا كان المنتج موجود مسبقاً في السلة لتحديث الكمية فقط
-        $cartItem = cart_item::updateOrCreate(
-            [
-                'user_id' => Auth::id(),
-                'product_id' => $request->product_id,
-                'purchase_type' => $request->purchase_type
-            ],
-            [
-                'price_at_addition' => $price // تثبيت السعر اللحظي
-            ]
-        );
-
-        return response()->json(['message' => 'تمت الإضافة للسلة', 'item' => $cartItem], 200);
+    } else {
+        // إذا كان عرضاً (Offer)
+        $offer = Offer::findOrFail($offerId);
+        $price = $offer->price; // سعر العرض ثابت
     }
+
+    // التحديث أو الإنشاء
+    $cartItem = cart_item::updateOrCreate(
+        [
+            'user_id'       => $userId,
+            'product_id'    => $productId, // سيكون null إذا كان عرضاً
+            'offer_id'      => $offerId,   // سيكون null إذا كان منتجاً
+            'purchase_type' => $request->purchase_type
+        ],
+        [
+            'price_at_addition' => $price
+        ]
+    );
+
+    return response()->json(['message' => 'تمت الإضافة للسلة', 'item' => $cartItem], 200);
+}
 
     public function destroy($id)
     {

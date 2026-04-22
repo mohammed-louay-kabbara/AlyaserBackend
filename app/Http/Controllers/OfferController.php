@@ -6,6 +6,7 @@ use App\Models\Offer;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 
 class OfferController extends Controller
@@ -35,29 +36,50 @@ class OfferController extends Controller
         $products = Product::all(); // إرسال المنتجات للمودال
         return view('offers', compact('offers', 'products'));  
     }
+public function store(Request $request)
+{
+    // 1. التحقق من البيانات
+    $request->validate([
+        'description' => 'required|string',
+        'expires_at'  => 'required|date|after:now',
+        'price'       => 'required|numeric|min:0', // سعر العرض الكلي
+        'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        
+        // التحقق من مصفوفة المنتجات
+        'products'            => 'required|array|min:1',
+        'products.*.product_id' => 'required|exists:products,id',
+        'products.*.quantity'   => 'required|integer|min:1',
+    ]);
 
-    // 2. إضافة عرض جديد (Create)
-    public function store(Request $request)
-    {
-        $request->validate([
-            'description' => 'required|string',
-            'expires_at'  => 'required|date|after:now',
-            'product_id'  => 'required|exists:products,id',
-            'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048'
-        ]);
+    try {
+        DB::beginTransaction();
 
-        // معالجة رفع الصورة
+        // 2. معالجة وحفظ الصورة
         $path = $request->file('image')->store('offers', 'public');
 
+        // 3. إنشاء سجل العرض الأساسي
         $offer = Offer::create([
             'description' => $request->description,
             'expires_at'  => $request->expires_at,
-            'product_id'  => $request->product_id,
-            'image'       => $path
+            'price'       => $request->price,
+            'image'       => $path,
         ]);
 
-        return back();
+        // 4. ربط المنتجات بالعرض في الجدول الوسيط (Pivot Table)
+        foreach ($request->products as $item) {
+            $offer->products()->attach($item['product_id'], [
+                'quantity' => $item['quantity']
+            ]);
+        }
+
+        DB::commit();
+        return back()->with('success', 'تم إضافة العرض بنجاح مع كافة منتجاته');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->withErrors('حدث خطأ أثناء حفظ العرض: ' . $e->getMessage());
     }
+}
 
     // 3. عرض عرض واحد بالتفصيل (Read Single)
     public function show($id)

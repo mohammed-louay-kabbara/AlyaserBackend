@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Offer extends Model
 {
-    protected $fillable = ['image', 'description', 'expires_at', 'product_id'];
+    protected $fillable = ['image', 'description', 'expires_at', 'price'];
     
     protected $casts = [
         'expires_at' => 'datetime',
     ];
-
-    public function product()
+    public function products()
     {
-        // أضفنا أسماء الحقول صراحة لقطع الشك باليقين في SQL Server
-        return $this->belongsTo(Product::class, 'product_id', 'id');
+        // نربط المنتجات بالعرض مع جلب الكمية المحددة داخل العرض
+        return $this->belongsToMany(Product::class, 'offer_product')
+                    ->withPivot('quantity');
     }
 }

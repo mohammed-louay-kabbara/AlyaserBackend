@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('offers', function (Blueprint $table) {
+        Schema::create('offer_products', function (Blueprint $table) {
             $table->id();
-            $table->string('image'); 
-            $table->text('description'); 
-            $table->dateTime('expires_at'); 
-        $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->foreignId('offer_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_id')->constrained();
+            $table->integer('quantity'); // الكمية داخل العرض الواحد (مثلاً: 3)
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('offers');
+        Schema::dropIfExists('offer_products');
     }
 };
