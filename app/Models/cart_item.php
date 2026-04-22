@@ -20,4 +20,8 @@ class cart_item extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function offer()
+    {
+        return $this->belongsTo(Offer::class);
+    }
 }
