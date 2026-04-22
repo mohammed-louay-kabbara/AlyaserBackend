@@ -38,10 +38,11 @@ class OfferController extends Controller
     }
 public function store(Request $request)
 {
+    dd($request->all());
     // 1. التحقق من البيانات
     $request->validate([
         'description' => 'required|string',
-        'expires_at'  => 'required|date|after:now',
+        'expires_at'  => 'required',
         'price'       => 'required|numeric|min:0', // سعر العرض الكلي
         'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048',
     ]);
