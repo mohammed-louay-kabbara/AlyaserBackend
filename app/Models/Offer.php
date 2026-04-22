@@ -13,9 +13,10 @@ class Offer extends Model
     ];
     public function products()
     {
-        // نربط المنتجات بالعرض مع جلب الكمية المحددة داخل العرض
-        return $this->belongsToMany(Product::class, 'offer_product')
-                    ->withPivot('quantity');
+        // أضفنا 'offer_products' كبارامتر ثاني لتحديد اسم الجدول بوضوح
+        return $this->belongsToMany(Product::class, 'offer_products') 
+                    ->withPivot('quantity')
+                    ->withTimestamps();
     }
     
 
