@@ -73,7 +73,7 @@ public function store(Request $request)
         }
 
         DB::commit();
-        return back()->with('success', 'تم إضافة العرض بنجاح مع كافة منتجاته');
+        return response()->json(['message' => 'تم إنشاء العرض بنجاح'], 2010);
 
     } catch (\Exception $e) {
         DB::rollBack();
