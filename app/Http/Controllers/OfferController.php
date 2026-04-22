@@ -68,7 +68,7 @@ public function store(Request $request)
         }
 
         DB::commit();
-        return response()->json(['message' => 'تم إنشاء العرض بنجاح'], 2010);
+        return response()->json(['message' => 'تم إنشاء العرض بنجاح'], 201);
 
     } catch (\Exception $e) {
         DB::rollBack();
