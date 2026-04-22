@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\FcmService;
+use App\Models\Offer;
 
 class OrderController extends Controller
 {
@@ -111,56 +112,71 @@ public function sendToWarehouse($id)
 
     return back()->with('success', 'تم توجيه الطلب للمستودع وسيتم مزامنته قريباً.');
 }
-    public function store(Request $request)
-    {
-        $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.product_id'    => 'required|exists:products,id',
-            'items.*.quantity'      => 'required|numeric|min:0.1',
-            'items.*.purchase_type' => 'required',
+public function store(Request $request)
+{
+    $request->validate([
+        'items' => 'required|array|min:1',
+        'items.*.quantity'      => 'required|numeric|min:0.1',
+        'items.*.purchase_type' => 'required',
+        // التحقق من وجود أحدهما لكل عنصر في المصفوفة
+        'items.*.product_id'    => 'nullable|exists:products,id',
+        'items.*.offer_id'      => 'nullable|exists:offers,id',
+    ]);
+    try {
+        DB::beginTransaction();
+        
+        $totalAmount = 0;
+        $order = Order::create([
+            'user_id'      => Auth::id(), 
+            'total_amount' => 0, 
+            'status'       => 'pending',
+            'notes'        => $request->notes,
         ]);
-        try {
-            DB::beginTransaction();
-            $totalAmount = 0;
-            $order = Order::create([
-                'user_id'      => Auth::id(), 
-                'total_amount' => 0, 
-                'status'       => 'pending',
-                'notes'        => $request->notes,
-            ]);
-            $productIds = collect($request->items)->pluck('product_id')->unique();
-            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
-            foreach ($request->items as $item) {
-                $product = $products[$item['product_id']];
-                $secureUnitPrice = ($item['purchase_type'] == 'طرد') 
-                                 ? $product->wholesale_price 
-                                 : $product->retail_price;
-                $subTotal = $secureUnitPrice * $item['quantity'];
-                $totalAmount += $subTotal;
-                OrderItem::create([
-                    'order_id'      => $order->id,
-                    'product_id'    => $item['product_id'],
-                    'purchase_type' => $item['purchase_type'],
-                    'quantity'      => $item['quantity'],
-                    'unit_price'    => $secureUnitPrice, // السعر الآمن المجلوب من السيرفر
-                    'sub_total'     => $subTotal
-                ]);
-            }
-            $order->update(['total_amount' => $totalAmount]);
-            cart_item::where('user_id',Auth::id())->delete();
-            DB::commit();
-            return response()->json([
-                'message' => 'تم إنشاء الفاتورة بنجاح',
-                'order'   => $order->load('items.product')
-            ], 201);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'حدث خطأ أثناء إصدار الفاتورة: ' . $e->getMessage()
-            ], 500);
+        foreach ($request->items as $item) {
+            $unitPrice = 0;
+
+            if (!empty($item['product_id'])) {
+                // منطق المنتج
+                $product = Product::find($item['product_id']);
+                $unitPrice = ($item['purchase_type'] == 'طرد') 
+                             ? $product->wholesale_price 
+                             : $product->retail_price;
+            } elseif (!empty($item['offer_id'])) {
+                // منطق العرض
+                $offer = Offer::find($item['offer_id']);
+                $unitPrice = $offer->price;
+            }
+            $subTotal = $unitPrice * $item['quantity'];
+            $totalAmount += $subTotal;
+            OrderItem::create([
+                'order_id'      => $order->id,
+                'product_id'    => $item['product_id'] ?? null,
+                'offer_id'      => $item['offer_id'] ?? null,
+                'purchase_type' => $item['purchase_type'],
+                'quantity'      => $item['quantity'],
+                'unit_price'    => $unitPrice,
+                'sub_total'     => $subTotal
+            ]);
         }
+
+        $order->update(['total_amount' => $totalAmount]);
+        
+        // مسح السلة للمستخدم
+        cart_item::where('user_id', Auth::id())->delete();
+
+        DB::commit();
+        
+        return response()->json([
+            'message' => 'تم إنشاء الطلب بنجاح',
+            'order'   => $order->load('items.product', 'items.offer')
+        ], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'خطأ: ' . $e->getMessage()], 500);
     }
+}
 
     public function index()
     {
