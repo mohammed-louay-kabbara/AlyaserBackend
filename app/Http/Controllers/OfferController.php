@@ -72,7 +72,7 @@ public function store(Request $request)
 
     } catch (\Exception $e) {
         DB::rollBack();
-        return response()->json(['message' => 'حدث خطأ أثناء إنشاء العرض'], 500);
+        return response()->json(['message' => $e], 500);
     }
 }
 
