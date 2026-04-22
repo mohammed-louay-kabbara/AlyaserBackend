@@ -44,11 +44,6 @@ public function store(Request $request)
         'expires_at'  => 'required|date|after:now',
         'price'       => 'required|numeric|min:0', // سعر العرض الكلي
         'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        
-        // التحقق من مصفوفة المنتجات
-        'products'            => 'required|array|min:1',
-        'products.*.product_id' => 'required|exists:products,id',
-        'products.*.quantity'   => 'required|integer|min:1',
     ]);
 
     try {
