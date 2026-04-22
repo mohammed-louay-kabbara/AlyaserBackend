@@ -38,7 +38,6 @@ class OfferController extends Controller
     }
 public function store(Request $request)
 {
-    dd($request->all());
     // 1. التحقق من البيانات
     $request->validate([
         'description' => 'required|string',
