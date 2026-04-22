@@ -15,4 +15,13 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+    public function offer()
+    {
+        // علاقة "ينتمي إلى" لأن جدول order_items يحتوي على offer_id
+        return $this->belongsTo(Offer::class);
+    }
 }
