@@ -178,6 +178,17 @@ public function store(Request $request)
     }
 }
 
+    public function status(Request $request)
+    {
+        if($request->status == 'completed'){
+            Order::where('id', $request->order_id)->update(['status' => 'completed']);
+        }
+        else{
+            Order::where('id', $request->order_id)->update(['status' => 'error','problem'=> $request->problem]);
+        }
+       return response()->json(['message' => 'تم تحديث حالة الطلب بنجاح'], 200);
+    }
+
     public function index()
     {
         $orders = Order::where('user_id', Auth::id())->withcount('items')->orderBy('created_at', 'desc')->get();
