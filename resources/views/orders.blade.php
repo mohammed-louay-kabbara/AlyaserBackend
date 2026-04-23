@@ -206,7 +206,7 @@
                                                                                 <input type="text"
                                                                                     name="items[{{ $index }}][product_id]"
                                                                                     class="form-control"
-                                                                                    value="{{ $item->product->name }}"
+                                                                                    value="{{ $item->product->name ?? 'منتج غير متوفر' }}"
                                                                                     required>
                                                                             </td>
                                                                             <td>
