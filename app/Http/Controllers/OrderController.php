@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\FcmService;
 use App\Models\Offer;
+use Mpdf\Mpdf;
 
 class OrderController extends Controller
 {
@@ -323,29 +324,44 @@ public function store(Request $request)
 public function printOrders(Request $request)
 {
     if (!$request->has('ids')) {
-        return back()->with('error', 'لم يتم تحديد أي طلبات للطباعة.');
+        return response()->json(['error' => 'لم يتم تحديد أي طلبات للطباعة.'], 400);
     }
 
     $ids = explode(',', $request->ids);
     
     // جلب الطلبات مع تفاصيلها (الزبون، والعناصر المطلوبة)
-    // افترض أن لديك علاقة اسمها 'items' في موديل Order لجلب OrderItem
     $orders = Order::with(['user', 'items'])->whereIn('id', $ids)->get();
 
-    return view('print_orders', compact('orders'));
+    // Generate PDF using mPDF
+    $mpdf = new \Mpdf\Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_left' => 10,
+        'margin_right' => 10,
+        'margin_top' => 10,
+        'margin_bottom' => 10,
+    ]);
+
+    $html = view('print_orders', compact('orders'))->render();
+    $mpdf->WriteHTML($html);
+
+    // Return PDF as downloadable response
+    return response($mpdf->Output('', 'S'))
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', 'attachment; filename="orders.pdf"');
 }
     public function destroy(Request $request, $id,FcmService $fcmService)
-    {
-          $order=Order::findOrFail($id);
-        if ($request->deletion_reason) {
-            if ($order->user->fcm_token) {
-                $fcmService->sendAndSaveNotification(
-                $order->user->id,
-                $order->user->fcm_token, 
-                'تم حذف طلبك', 
-                $request->deletion_reason,
-                'order'
-            );
+{
+      $order=Order::findOrFail($id);
+    if ($request->deletion_reason) {
+        if ($order->user->fcm_token) {
+            $fcmService->sendAndSaveNotification(
+            $order->user->id,
+            $order->user->fcm_token,
+            'تم حذف طلبك',
+            $request->deletion_reason,
+            'order'
+        );
         }
         }
         // 2. حذف الطلب نفسه
@@ -353,5 +369,33 @@ public function printOrders(Request $request)
         return back()->with('success', 'تم حذف الطلب وجميع محتوياته بنجاح.');
     }
 
+public function getAdminOrders(Request $request)
+{
+    $query = Order::with('user')->orderBy('created_at', 'desc');
+
+    if ($request->filled('search')) {
+        $query->whereHas('user', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%');
+        });
+    }
+
+    if ($request->filled('date')) {
+        $query->whereDate('created_at', $request->date);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    $warehouses = User::where('role', 3)->get();
+    $products = Product::select('id', 'name')->get();
+    $orders = $query->paginate(20);
+
+    return response()->json([
+        'orders' => $orders,
+        'warehouses' => $warehouses,
+        'products' => $products
+    ]);
 }
 
+}

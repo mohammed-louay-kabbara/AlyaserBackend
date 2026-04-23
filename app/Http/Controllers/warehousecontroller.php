@@ -21,8 +21,22 @@ class warehousecontroller extends Controller
                             ->orWhere('phone', 'LIKE', "%{$search}%");
             })
             ->get();
-            
+
         return view('warehouses', compact('warehouses'));
+    }
+
+    public function getAdminWarehouses(Request $request)
+    {
+        $search = $request->input('search');
+        $warehouses = User::where('role', 3)
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'LIKE', "%{$search}%")
+                            ->orWhere('phone', 'LIKE', "%{$search}%");
+            })
+            ->latest()
+            ->get();
+
+        return response()->json($warehouses);
     }
     public function show_orders($id)
     {
@@ -40,15 +54,19 @@ class warehousecontroller extends Controller
      */
     public function store(Request $request)
     {
-        
-        Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'name'      => 'required|string|max:255',
             'phone'     => 'required|string|unique:users,phone',
             'zone'      => 'required|string',
             'address'   => 'required|string',
             'password'  => 'required|string|min:8', 
         ]);
-        User::create([
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $warehouse = User::create([
             'name' => $request->name,
             'phone'=> $request->phone,
             'address'=> $request->address,
@@ -57,7 +75,8 @@ class warehousecontroller extends Controller
             'role' => 3,
             'activated' => 1
         ]);
-        return back();
+
+        return response()->json(['message' => 'تمت إضافة المستودع بنجاح', 'warehouse' => $warehouse], 201);
     }
 
     /**
@@ -78,28 +97,49 @@ class warehousecontroller extends Controller
      */
     public function update(Request $request, $id)
     {
-        Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'name'      => 'required|string|max:255',
-            'phone'     => 'required|string|unique:users,phone',
+            'phone'     => 'required|string|unique:users,phone,' . $id,
             'zone'      => 'required|string',
             'address'   => 'required|string',
-            'password'  => 'required|string|min:8', 
+            'password'  => 'nullable|string|min:8', 
         ]);
-        User::where('id',$id)->update([
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $data = [
             'name' => $request->name,
             'phone'=> $request->phone,
             'address'=> $request->address,
             'zone' => $request->zone,
-            'password'  => Hash::make($request->password),
             'role' => 3,
             'activated' => 1
-        ]);
-        return back();
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $warehouse = User::where('id', $id)->first();
+        if (!$warehouse) {
+            return response()->json(['error' => 'المستودع غير موجود'], 404);
+        }
+
+        $warehouse->update($data);
+
+        return response()->json(['message' => 'تم تحديث المستودع بنجاح', 'warehouse' => $warehouse], 200);
     }
 
     public function destroy($id)
     {
-        User::where('id',$id)->delete();
-        return back();
+        $warehouse = User::where('id', $id)->first();
+        if (!$warehouse) {
+            return response()->json(['error' => 'المستودع غير موجود'], 404);
+        }
+
+        $warehouse->delete();
+        return response()->json(['message' => 'تم حذف المستودع بنجاح'], 200);
     }
 }

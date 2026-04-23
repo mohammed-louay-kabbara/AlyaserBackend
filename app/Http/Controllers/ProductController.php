@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\SearchHistory;
 use Mpdf\Mpdf;
@@ -145,35 +146,40 @@ class ProductController extends Controller
 
     public function uploadImage(Request $request, $id)
 {
-    // التحقق من أن الملف المرفوع هو صورة فعلية وحجمها مناسب
-    $request->validate([
-        'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048'
-    ]);
-
-    $product = Product::findOrFail($id);
-
-    if ($request->hasFile('image')) {
-        $file = $request->file('image');
-        
-        // توليد اسم فريد للصورة لمنع التكرار
-        $filename = time() . '_' . $file->getClientOriginalName();
-        
-        // حفظ الصورة في مجلد public/uploads/products
-        $file->move(public_path('uploads/products'), $filename);
-
-        // تحديث مسار الصورة في قاعدة البيانات
-        $imagePath = 'uploads/products/' . $filename;
-        $product->image = $imagePath;
-        $product->save();
-
-        // إعادة المسار كـ JSON ليقوم الجافاسكربت بعرضها فوراً
-        return response()->json([
-            'success' => true,
-            'image_url' => asset($imagePath)
-        ]);
+    if (!$request->hasFile('image')) {
+        return response()->json(['error' => 'No image file provided'], 422);
     }
 
-    return response()->json(['success' => false, 'message' => 'لم يتم العثور على ملف']);
+    $file = $request->file('image');
+    
+    // Validate the file
+    $validator = Validator::make($request->all(), [
+        'image' => 'image|mimes:jpeg,png,jpg,webp|max:2048'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
+    if (!$file->isValid()) {
+        return response()->json(['error' => 'Invalid image file'], 422);
+    }
+
+    $product = Product::findOrFail($id);
+    
+    // توليد اسم فريد للصورة لمنع التكرار
+    $filename = time() . '_' . $file->getClientOriginalName();
+    
+    // حفظ الصورة في مجلد public/uploads/products
+    $file->move(public_path('uploads/products'), $filename);
+
+    // تحديث مسار الصورة في قاعدة البيانات
+    $imagePath = 'uploads/products/' . $filename;
+    $product->image = $imagePath;
+    $product->save();
+
+    // إعادة المسار كـ JSON ليقوم الجافاسكربت بعرضها فوراً
+    return response()->json(['image' => $imagePath], 200);
 }
 
     public function search(Request $request)
@@ -269,5 +275,67 @@ public function exportPdf()
     return response($mpdf->Output('products.pdf', 'S'))
         ->header('Content-Type', 'application/pdf')
         ->header('Content-Disposition', 'attachment; filename="products.pdf"');
+}
+
+public function getAdminProducts(Request $request)
+{
+    $search = $request->input('search');
+    $status = $request->input('stock_status');
+    $category = $request->input('category_id');
+
+    $query = Product::query();
+
+    if ($search) {
+        $query->where('name', 'LIKE', "%{$search}%");
+    }
+
+    if ($status) {
+        if ($status == 'available') {
+            $query->where('quantity', '>', 0);
+        } elseif ($status == 'out_of_stock') {
+            $query->where('quantity', '<=', 0);
+        }
+    }
+
+    if ($category) {
+        $query->where('category_id', $category);
+    }
+
+    $products = $query->latest()->paginate(20);
+    $categories = category::get();
+
+    return response()->json([
+        'products' => $products,
+        'categories' => $categories
+    ]);
+}
+
+public function searchAdmin(Request $request)
+{
+    $search = $request->input('search');
+    $status = $request->input('stock_status');
+    $category = $request->input('category_id');
+
+    $query = Product::query();
+
+    if ($search) {
+        $query->where('name', 'LIKE', "%{$search}%");
+    }
+
+    if ($status) {
+        if ($status == 'available') {
+            $query->where('quantity', '>', 0);
+        } elseif ($status == 'out_of_stock') {
+            $query->where('quantity', '<=', 0);
+        }
+    }
+
+    if ($category) {
+        $query->where('category_id', $category);
+    }
+
+    $products = $query->latest()->paginate(20);
+
+    return response()->json($products);
 }
 }

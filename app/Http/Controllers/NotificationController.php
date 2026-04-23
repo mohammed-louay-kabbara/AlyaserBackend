@@ -18,6 +18,12 @@ class NotificationController extends Controller
         $users=User::get();
         return view('Notifications',compact('users'));
     }
+
+    public function getUsersList(Request $request)
+    {
+        $users = User::select('id', 'name', 'phone')->latest()->get();
+        return response()->json($users);
+    }
     
 
     public function sendNotification(Request $request, FcmService $fcmService)
