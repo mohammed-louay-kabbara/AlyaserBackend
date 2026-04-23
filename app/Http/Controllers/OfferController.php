@@ -14,8 +14,7 @@ class OfferController extends Controller
     public function index()
     {
         // جلب العروض مع منتجاتها، بشرط أن يكون تاريخ الانتهاء أكبر من الوقت الحالي
-        $offers = Offer::with('product')
-            ->where('expires_at', '>', now()) 
+        $offers = Offer::where('expires_at', '>', now()) 
             ->orderBy('expires_at', 'asc') // اختياري: عرض الأقرب للانتهاء أولاً
             ->get();
 
@@ -32,9 +31,19 @@ class OfferController extends Controller
 
     public function offer_admin()
     {
-        $offers = Offer::with('product')->get();
+        $offers = Offer::get();
         $products = Product::all(); // إرسال المنتجات للمودال
-        return view('offers', compact('offers', 'products'));  
+        return view('offers', compact('offers', 'products'));
+    }
+
+    public function getAdminOffers(Request $request)
+    {
+        $offers = Offer::with('product')->get();
+        $products = Product::all();
+        return response()->json([
+            'offers' => $offers,
+            'products' => $products
+        ]);
     }
 public function store(Request $request)
 {

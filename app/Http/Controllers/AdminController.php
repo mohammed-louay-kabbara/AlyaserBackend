@@ -109,5 +109,72 @@ public function bulkToggleStatus(Request $request)
         'message' => 'تم تحديث حالة المستخدمين بنجاح'
     ]);
 }
-    
+
+public function dashboardStats()
+{
+    $users_count = User::count();
+    $activated = User::where('activated', 0)->count();
+    $category = category::count();
+    $Product_count = Product::count();
+    $Product_quantity = Product::where('quantity', 0)->count();
+    $Order_pending = Order::where('status', 'pending')->count();
+    $Order_processing = Order::where('status', 'processing')->count();
+    $Offers_count = Offer::where('expires_at', '>', now())->count();
+    $Offers = Offer::where('expires_at', '>', now())->get();
+    $exchange_rates = exchange_rate::orderBy('created_at', 'desc')->take(3)->get();
+    $top_products = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_sold'))
+        ->groupBy('product_id')
+        ->orderBy('total_sold', 'desc')
+        ->take(5)
+        ->with('product')
+        ->get();
+
+    return response()->json([
+        'users_count' => $users_count,
+        'activated' => $activated,
+        'category' => $category,
+        'Product_count' => $Product_count,
+        'Product_quantity' => $Product_quantity,
+        'Order_pending' => $Order_pending,
+        'Order_processing' => $Order_processing,
+        'Offers_count' => $Offers_count,
+        'Offers' => $Offers,
+        'top_products' => $top_products,
+        'exchange_rates' => $exchange_rates
+    ]);
+}
+
+public function getUsers(Request $request)
+{
+    $query = User::query();
+
+    if ($request->filled('search')) {
+        $query->where('name', 'like', '%' . $request->search . '%');
+    }
+
+    if ($request->has('activated') && $request->activated !== 'all') {
+        $query->where('activated', $request->activated);
+    }
+
+    $users = $query->latest()->get();
+
+    return response()->json($users);
+}
+
+public function resetPassword(Request $request, $id)
+{
+    $request->validate([
+        'password' => 'required|min:6'
+    ]);
+
+    User::where('id', $id)->update([
+        'password' => Hash::make($request->password)
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'تم تحديث كلمة المرور بنجاح'
+    ]);
+}
+
 }

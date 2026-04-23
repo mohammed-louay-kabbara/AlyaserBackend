@@ -32,29 +32,46 @@ class CategoryController extends Controller
         return view('categories', compact('categories'));
     }
 
+    public function getAdminCategories(Request $request)
+    {
+        $query = category::query();
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+        $categories = $query->latest()->get();
+        return response()->json($categories);
+    }
+
     public function store(Request $request)
     {
-        // 1. التحقق من البيانات (إضافة شرط الصورة)
-        $validator = Validator::make($request->all(), [
+        // Build validation rules dynamically
+        $rules = [
             'name'  => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // حد أقصى 2MB
-        ]);
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-        $imagePath = null;
-        // 2. معالجة رفع الصورة
+        ];
+        
+        // Only add image validation if file is present
         if ($request->hasFile('image')) {
-            // تخزين الصورة في مجلد storage/app/public/categories
+            $rules['image'] = 'image|mimes:jpeg,png,jpg,gif|max:2048';
+        }
+        
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+        
+        $imagePath = null;
+        // معالجة رفع الصورة
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $imagePath = $request->file('image')->store('categories', 'public');
         }
-        // 3. الحفظ في قاعدة البيانات
-        category::create([
+        
+        // الحفظ في قاعدة البيانات
+        $category = category::create([
             'name'  => $request->name,
             'image' => $imagePath,
         ]);
 
-        return back()->with('success', 'تمت إضافة القسم بنجاح');
+        return response()->json(['message' => 'تمت إضافة القسم بنجاح', 'category' => $category], 201);
     }
 
 
@@ -71,40 +88,43 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // 1. جلب القسم أو إرجاع خطأ 404 إذا لم يوجد
+        // جلب القسم أو إرجاع خطأ 404 إذا لم يوجد
         $category = category::findOrFail($id);
 
-        // 2. التحقق من البيانات
-        $validator = Validator::make($request->all(), [
+        // Build validation rules dynamically
+        $rules = [
             'name'  => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
+        ];
+        
+        // Only add image validation if file is present
+        if ($request->hasFile('image')) {
+            $rules['image'] = 'image|mimes:jpeg,png,jpg,gif|max:2048';
+        }
+        
+        $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // 3. تجهيز البيانات للتحديث
+        // تجهيز البيانات للتحديث
         $data = [
             'name' => $request->name,
         ];
 
-        // 4. معالجة الصورة في حال تم رفع ملف جديد
-        if ($request->hasFile('image')) {
-
+        // معالجة الصورة في حال تم رفع ملف جديد
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
             // حذف الصورة القديمة من المجلد (Storage) لتوفير المساحة
             if ($category->image && Storage::disk('public')->exists($category->image)) {
                 Storage::disk('public')->delete($category->image);
             }
-
             // تخزين الصورة الجديدة وتحديث المسار في مصفوفة البيانات
             $data['image'] = $request->file('image')->store('categories', 'public');
         }
 
-        // 5. تنفيذ التحديث
+        // تنفيذ التحديث
         $category->update($data);
 
-        return back()->with('success', 'تم تحديث القسم بنجاح');
+        return response()->json(['message' => 'تم تحديث القسم بنجاح', 'category' => $category], 200);
     }
     /**
      * Remove the specified resource from storage.
@@ -112,11 +132,14 @@ class CategoryController extends Controller
     public function destroy($id)
     {
        $category= category::where('id', $id)->first();
+        if (!$category) {
+            return response()->json(['error' => 'القسم غير موجود'], 404);
+        }
         // حذف الصورة القديمة من المجلد (Storage) لتوفير المساحة
         if ($category->image && Storage::disk('public')->exists($category->image)) {
             Storage::disk('public')->delete($category->image);
         }
         $category->delete();
-        return back();
+        return response()->json(['message' => 'تم حذف القسم بنجاح'], 200);
     }
 }
