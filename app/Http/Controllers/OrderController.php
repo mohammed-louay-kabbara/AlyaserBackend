@@ -23,59 +23,123 @@ class OrderController extends Controller
         return view('orders_user',compact('Orders'));
     }
 
+// public function update(Request $request, $id)
+// {
+//     $order = Order::findOrFail($id);
+//     $order->notes = $request->notes;
+//     // إذا تغيرت الطلبية نعتبرها غير متزامنة مع الأمين ليتم إرسالها من جديد
+//     $order->is_synced = false; 
+//     $submittedItemIds = []; // مصفوفة لتخزين معرفات العناصر التي جاءت من الفورم
+//     $newTotalAmount = 0;    // لحساب الإجمالي الجديد للطلب
+
+//     // 2. معالجة المنتجات (Items)
+//     if ($request->has('items')) {
+//         foreach ($request->items as $itemData) {
+            
+//             // حساب المجموع الفرعي لهذا العنصر
+//             $subTotal = $itemData['quantity'] * $itemData['unit_price'];
+//             $newTotalAmount += $subTotal;
+
+//             if (isset($itemData['item_id']) && $itemData['item_id'] !== 'new') {
+//                 // أ - تحديث منتج موجود مسبقاً
+//                 $orderItem = OrderItem::find($itemData['item_id']);
+//                 if ($orderItem) {
+//                     $orderItem->update([
+//                         'product_id'    => $itemData['product_id'],
+//                         'purchase_type' => $itemData['purchase_type'],
+//                         'quantity'      => $itemData['quantity'],
+//                         'unit_price'    => $itemData['unit_price'],
+//                         'sub_total'     => $subTotal,
+//                     ]);
+//                     $submittedItemIds[] = $orderItem->id;
+//                 }
+//             } else {
+//                 // ب - إضافة منتج جديد تمت إضافته من زر "إضافة منتج جديد"
+//                 $newItem = $order->items()->create([
+//                     'product_id'    => $itemData['product_id'],
+//                     'purchase_type' => $itemData['purchase_type'],
+//                     'quantity'      => $itemData['quantity'],
+//                     'unit_price'    => $itemData['unit_price'],
+//                     'sub_total'     => $subTotal,
+//                 ]);
+//                 $submittedItemIds[] = $newItem->id;
+//             }
+//         }
+//     }
+
+//     // 3. حذف المنتجات التي كانت في الطلب وتم مسحها من الفورم
+//     // نحذف أي عنصر تابع للطلب ولا يوجد الـ ID الخاص به ضمن المصفوفة التي أرسلناها
+//     $order->items()->whereNotIn('id', $submittedItemIds)->delete();
+
+//     // 4. تحديث الإجمالي الكلي للطلبية وحفظها
+//     $order->total_amount = $newTotalAmount;
+//     $order->save();
+
+//     return back()->with('success', 'تم تحديث الطلبية ومحتوياتها بنجاح.');
+// }
+
 public function update(Request $request, $id)
 {
     $order = Order::findOrFail($id);
-    $order->notes = $request->notes;
-    // إذا تغيرت الطلبية نعتبرها غير متزامنة مع الأمين ليتم إرسالها من جديد
-    $order->is_synced = false; 
-    $submittedItemIds = []; // مصفوفة لتخزين معرفات العناصر التي جاءت من الفورم
-    $newTotalAmount = 0;    // لحساب الإجمالي الجديد للطلب
+    
+    // التحقق من البيانات (Validation)
+    $request->validate([
+        'items' => 'required|array',
+        'items.*.quantity' => 'required|numeric|min:0.1',
+        'items.*.unit_price' => 'required|numeric',
+    ]);
 
-    // 2. معالجة المنتجات (Items)
+    // إذا تغيرت الطلبية نعتبرها غير متزامنة مع الأمين
+    $order->is_synced = false; 
+    $order->notes = $request->notes;
+
+    $submittedItemIds = []; 
+    $newTotalAmount = 0; 
+
     if ($request->has('items')) {
         foreach ($request->items as $itemData) {
             
-            // حساب المجموع الفرعي لهذا العنصر
+            // حساب المجموع الفرعي
             $subTotal = $itemData['quantity'] * $itemData['unit_price'];
             $newTotalAmount += $subTotal;
 
+            // تجهيز البيانات للحفظ (دعم المنتج أو العرض)
+            $itemPayload = [
+                'product_id'    => $itemData['product_id'] ?? null,
+                'offer_id'      => $itemData['offer_id'] ?? null,
+                'purchase_type' => $itemData['purchase_type'],
+                'quantity'      => $itemData['quantity'],
+                'unit_price'    => $itemData['unit_price'],
+                'sub_total'     => $subTotal,
+            ];
+
             if (isset($itemData['item_id']) && $itemData['item_id'] !== 'new') {
-                // أ - تحديث منتج موجود مسبقاً
+                // 1. تحديث عنصر موجود
                 $orderItem = OrderItem::find($itemData['item_id']);
                 if ($orderItem) {
-                    $orderItem->update([
-                        'product_id'    => $itemData['product_id'],
-                        'purchase_type' => $itemData['purchase_type'],
-                        'quantity'      => $itemData['quantity'],
-                        'unit_price'    => $itemData['unit_price'],
-                        'sub_total'     => $subTotal,
-                    ]);
+                    $orderItem->update($itemPayload);
                     $submittedItemIds[] = $orderItem->id;
                 }
             } else {
-                // ب - إضافة منتج جديد تمت إضافته من زر "إضافة منتج جديد"
-                $newItem = $order->items()->create([
-                    'product_id'    => $itemData['product_id'],
-                    'purchase_type' => $itemData['purchase_type'],
-                    'quantity'      => $itemData['quantity'],
-                    'unit_price'    => $itemData['unit_price'],
-                    'sub_total'     => $subTotal,
-                ]);
+                // 2. إضافة عنصر جديد (سواء كان منتج أو عرض)
+                $newItem = $order->items()->create($itemPayload);
                 $submittedItemIds[] = $newItem->id;
             }
         }
     }
 
-    // 3. حذف المنتجات التي كانت في الطلب وتم مسحها من الفورم
-    // نحذف أي عنصر تابع للطلب ولا يوجد الـ ID الخاص به ضمن المصفوفة التي أرسلناها
+    // 3. حذف العناصر التي تم إزالتها من واجهة المستخدم
     $order->items()->whereNotIn('id', $submittedItemIds)->delete();
 
-    // 4. تحديث الإجمالي الكلي للطلبية وحفظها
+    // 4. تحديث الإجمالي والحفظ
     $order->total_amount = $newTotalAmount;
     $order->save();
 
-    return back()->with('success', 'تم تحديث الطلبية ومحتوياتها بنجاح.');
+    // في الـ API نفضل إرجاع JSON بدلاً من back()
+    return response()->json([
+        'message' => 'تم تحديث الطلبية ومحتوياتها بنجاح',
+        'order' => $order->load('items')
+    ], 200);
 }
 
 public function get_order(Request $request)
