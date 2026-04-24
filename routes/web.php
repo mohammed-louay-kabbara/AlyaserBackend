@@ -11,6 +11,11 @@ use App\Http\Controllers\warehousecontroller;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 
+// React App Route (SPA)
+Route::get('/app/{any?}', function () {
+    return file_get_contents(public_path('react-app/index.html'));
+})->where('any', '.*');
+
 // مسارات متاحة للجميع (بدون تسجيل دخول)
 Route::get('/', function () {
     return view('welcome');

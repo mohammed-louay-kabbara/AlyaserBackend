@@ -67,6 +67,16 @@ class NotificationController extends Controller
         return view('user_notifications', compact('notifications'));
     }
 
+    public function getUserNotificationsJson($id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => 'المستخدم غير موجود'], 404);
+        }
+        $notifications = $user->notifications()->latest()->get();
+        return response()->json($notifications, 200);
+    }
+
     public function sendPushNotification(Request $request)
     {
     $token="dBrx1XnKTZ-Qej8J6Zs7r6:APA91bGenYb6yqZzWqWQtqvSWBQVl1CB57tOqo3K4UODaKFbHZ32zessVEdr3sfQQqkN3POSnbZgnYCPDskKRYoTHAzF9G4MS2M6DWnzqvtyGDZ-QxOSMIc";

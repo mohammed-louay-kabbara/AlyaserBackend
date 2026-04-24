@@ -82,6 +82,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::put('/admin/orders/{id}', [OrderController::class, 'update']);
     Route::delete('/admin/orders/{id}', [OrderController::class, 'destroy']);
     Route::get('/admin/orders/user/{id}', [OrderController::class, 'orders_user']);
+    Route::get('/admin/orders/user/{id}/json', [OrderController::class, 'getUserOrdersJson']);
+    Route::get('/admin/orders/warehouse/{id}/json', [OrderController::class, 'getWarehouseOrdersJson']);
     
     // Categories Management
     Route::get('/admin/categories', [CategoryController::class, 'getAdminCategories']);
@@ -98,4 +100,5 @@ Route::middleware(['auth:api'])->group(function () {
     // Notifications
     Route::get('/admin/users-list', [NotificationController::class, 'getUsersList']);
     Route::post('/admin/notifications/send', [NotificationController::class, 'sendNotification']);
+    Route::get('/admin/notifications/user/{id}/json', [NotificationController::class, 'getUserNotificationsJson']);
 });
