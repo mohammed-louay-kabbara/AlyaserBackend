@@ -23,9 +23,9 @@ class OrderController extends Controller
         return view('orders_user',compact('Orders'));
     }
 
-    public function getUserOrdersJson($user_id)
+    public function getUserOrdersJson($user_id, Request $request)
     {
-        $orders = Order::with(['items.product', 'user'])->where('user_id', $user_id)->latest()->get();
+        $orders = Order::with(['items.product', 'user'])->where('user_id', $user_id)->latest()->paginate(20);
         return response()->json($orders, 200);
     }
 
