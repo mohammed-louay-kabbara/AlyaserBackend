@@ -426,22 +426,33 @@ public function printOrders(Request $request)
         ->header('Content-Type', 'application/pdf')
         ->header('Content-Disposition', 'attachment; filename="orders.pdf"');
 }
-    public function destroy(Request $request, $id,FcmService $fcmService)
-{
-      $order=Order::findOrFail($id);
-    if ($request->deletion_reason) {
-        if ($order->user->fcm_token) {
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
+        
+        // Handle deletion reason if provided (for API calls)
+        $deletionReason = request('deletion_reason');
+        
+        if ($deletionReason && $order->user->fcm_token) {
+            $fcmService = app(FcmService::class);
             $fcmService->sendAndSaveNotification(
-            $order->user->id,
-            $order->user->fcm_token,
-            'تم حذف طلبك',
-            $request->deletion_reason,
-            'order'
-        );
+                $order->user->id,
+                $order->user->fcm_token,
+                'تم حذف طلبك',
+                $deletionReason,
+                'order'
+            );
         }
-        }
-        // 2. حذف الطلب نفسه
+        
+        // Delete the order
         $order->delete();
+        
+        // Return JSON response for API calls
+        if (request()->expectsJson()) {
+            return response()->json(['message' => 'تم حذف الطلب وجميع محتوياته بنجاح.'], 200);
+        }
+        
+        // Return redirect for web calls
         return back()->with('success', 'تم حذف الطلب وجميع محتوياته بنجاح.');
     }
 
