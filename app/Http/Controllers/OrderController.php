@@ -23,6 +23,18 @@ class OrderController extends Controller
         return view('orders_user',compact('Orders'));
     }
 
+    public function getUserOrdersJson($user_id)
+    {
+        $orders = Order::with(['items.product', 'user'])->where('user_id', $user_id)->latest()->get();
+        return response()->json($orders, 200);
+    }
+
+    public function getWarehouseOrdersJson($warehouse_id)
+    {
+        $orders = Order::with(['items.product', 'user'])->where('warehouse_id', $warehouse_id)->latest()->get();
+        return response()->json($orders, 200);
+    }
+
 // public function update(Request $request, $id)
 // {
 //     $order = Order::findOrFail($id);
@@ -435,7 +447,7 @@ public function printOrders(Request $request)
 
 public function getAdminOrders(Request $request)
 {
-    $query = Order::with('user')->orderBy('created_at', 'desc');
+    $query = Order::with(['user', 'items.product'])->orderBy('created_at', 'desc');
 
     if ($request->filled('search')) {
         $query->whereHas('user', function ($q) use ($request) {
