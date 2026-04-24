@@ -55,6 +55,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('/exportPdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
     Route::post('/sendToWarehouse/{id}', [OrderController::class, 'sendToWarehouse'])->name('Order.sendToWarehouse');
     Route::delete('/Order_destroy/{id}', [OrderController::class, 'destroy'])->name('Order.destroy');
+    Route::resource('orders', OrderController::class)->only(['destroy', 'update']);
     // Route::delete('/Order_update/{id}', [OrderController::class, 'update'])->name('Order.update');
     Route::post('/orders/bulk-send', [OrderController::class, 'bulkSendToWarehouse'])->name('Order.bulkSend');
     Route::get('/orders/print', [OrderController::class, 'printOrders'])->name('Order.print');
