@@ -65,35 +65,16 @@ class ProductController extends Controller
     }
     public function index()
     {
-// 1. جلب سعر صرف الدولار
-    // افترضنا أن اسم العملة في الجدول هو 'USD'. يمكنك تغييره حسب ما هو مسجل لديك
-    $dollarRate = exchange_rate::where('is_default', 1)->value('rate');
-    // تأمين الكود ضد خطأ "القسمة على صفر" في حال كان الجدول فارغاً
-    if (!$dollarRate || $dollarRate <= 0) {
-        $dollarRate = 1; 
-    }
-    // 2. جلب المنتجات المفلترة
-    $products = Product::where('retail_price', '!=', 0)
-                       ->where('wholesale_price', '!=', 0)
-                       ->paginate(20);
-
-    // 3. التعديل على مجموعة البيانات (Collection) الموجودة داخل الـ Paginator
-    $products->getCollection()->transform(function ($product) use ($dollarRate) {
-        
-        // المعادلة هنا هي (السعر المحلي تقسيم سعر صرف الدولار)
-        // استخدمنا round لتقريب الرقم إلى خانتين عشريتين
-        $product->retail_price_usd = round($product->retail_price / $dollarRate, 2);
-        $product->wholesale_price_usd = round($product->wholesale_price / $dollarRate, 2);
-        
-        // إذا كنت تريد استبدال السعر الأصلي تماماً (ولا تريد حقولاً جديدة)، يمكنك تفعيل السطرين التاليين بدلاً من السابقين:
-        // $product->retail_price = round($product->retail_price / $dollarRate, 2);
-        // $product->wholesale_price = round($product->wholesale_price / $dollarRate, 2);
-
-        return $product;
-    });
-
-    // 4. إرسال الرد
-    return response()->json($products, 200);
+        $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
+        $products = Product::where('retail_price', '!=', 0)
+            ->where('wholesale_price', '!=', 0)
+            ->paginate(20);
+        $products->getCollection()->transform(function ($product) use ($rate) {
+            $product->retail_price = round($product->retail_price / $rate, 2);
+            $product->wholesale_price = round($product->wholesale_price / $rate, 2);
+            return $product;
+        });
+        return response()->json($products, 200);
     }
     public function getSearchScreenData()
     {
