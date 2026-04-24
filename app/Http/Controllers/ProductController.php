@@ -68,6 +68,7 @@ class ProductController extends Controller
 // 1. جلب سعر صرف الدولار
     // افترضنا أن اسم العملة في الجدول هو 'USD'. يمكنك تغييره حسب ما هو مسجل لديك
     $dollarRate = exchange_rate::where('is_default', 1)->value('rate');
+    dd($dollarRate);
     // تأمين الكود ضد خطأ "القسمة على صفر" في حال كان الجدول فارغاً
     if (!$dollarRate || $dollarRate <= 0) {
         $dollarRate = 1; 
