@@ -26,43 +26,65 @@ class ProductController extends Controller
         ]);
         return response()->json('تم الحفظ بنجاح', 200);
     }
-    public function syncWithAmeen(Request $request)
-    {
-        try {
-            // تمديد وقت التنفيذ لتجنب الـ Timeout مع البيانات الضخمة
-            set_time_limit(0);
-            $ameenProducts = DB::connection('ameen')
-                ->table('mt000')
-                ->select('GUID', 'Name', 'Retail', 'Whole', 'Qty')
-                ->where('bHide', 0)
-                ->get();
+public function syncWithAmeen(Request $request)
+{
+    try {
+        set_time_limit(0);
+        
+        $ameenProducts = DB::connection('ameen')
+            ->table('mt000')
+            ->select(
+                'GUID', 
+                'Name', 
+                'Retail',    // سعر مفرق الوحدة الأولى
+                'Whole',     // غالباً سعر جملة الوحدة الأولى أو الثانية حسب الإدخال
+                'Whole2',    // سعر جملة الوحدة الثانية (الطرد)
+                'Unit2Fact', // كم قطعة في الطرد
+                'Qty'
+            )
+            ->where('bHide', 0)
+            ->get();
 
-            $count = 0;
-            foreach ($ameenProducts as $product) {
-                Product::updateOrCreate(
-                    ['ameen_guid' => $product->GUID],
-                    [
-                        'name'            => $product->Name,
-                        'retail_price'    => $product->Retail ?? 0,
-                        'wholesale_price' => $product->Whole ?? 0,
-                        'quantity'        => $product->Qty ?? 0,
-                    ]
-                );
-                $count++;
+        $count = 0;
+        foreach ($ameenProducts as $product) {
+            
+            // منطق تصحيح السعر:
+            // إذا كان سعر الجملة (Whole) أكبر من المفرق بشكل غير منطقي، 
+            // فهذا يعني أنه سعر الطرد وليس سعر القطعة.
+            
+            $retailPrice = $product->Retail ?? 0;
+            $wholesalePrice = $product->Whole ?? 0;
+
+            // إذا أردت أن يكون wholesale_price هو دائماً سعر "الطرد" 
+            // و retail_price هو سعر "القطعة":
+            if ($product->Whole2 > 0) {
+                $wholesalePrice = $product->Whole2; // الاعتماد على سعر الوحدة الثانية للطرد
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => "تمت المزامنة بنجاح! تم استيراد وتحديث {$count} منتج."
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'حدث خطأ أثناء المزامنة: ' . $e->getMessage()
-            ], 500);
+            Product::updateOrCreate(
+                ['ameen_guid' => $product->GUID],
+                [
+                    'name'            => $product->Name,
+                    'retail_price'    => $retailPrice,    // سعر القطعة
+                    'wholesale_price' => $wholesalePrice, // سعر الطرد (الجملة)
+                    'quantity'        => $product->Qty ?? 0,
+                ]
+            );
+            $count++;
         }
+
+        return response()->json([
+            'success' => true,
+            'message' => "تمت المزامنة بنجاح! تم تحديث {$count} منتج."
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'خطأ في المزامنة: ' . $e->getMessage()
+        ], 500);
     }
+}
     public function index()
     {
         $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
