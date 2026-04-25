@@ -347,7 +347,8 @@ public function updateOrder(Request $request, $orderId)
                 }
 
                 $offerId = $offer->id;
-                $secureUnitPrice = (float) ($offer->offer_price ?? 0);
+                $secureUnitPrice = (float) ($offer->price ?? 0);
+
 
                 if ($secureUnitPrice <= 0) {
                     throw new \Exception("العرض رقم {$offer->id} لا يحتوي على سعر صالح.");
