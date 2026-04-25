@@ -275,105 +275,161 @@ public function store(Request $request)
         $order = Order::where('id', $id)->with(['items.product','items.offer'])->with('items')->get();
         return response()->json($order, 200);
     }
-    public function updateOrder(Request $request, $orderId)
-    {
-        $request->validate([
-            'notes'                 => 'nullable|string',
-            'items'                 => 'required|array|min:1',
-            'items.*.product_id'    => 'required|exists:products,id',
-            'items.*.quantity'      => 'required|numeric|min:0.1',
-            'items.*.purchase_type' => 'required|string',
-        ]);
-        $order = Order::where('id', $orderId)
-                      ->where('user_id', auth()->id())
-                      ->first();
+public function updateOrder(Request $request, $orderId)
+{
+    $request->validate([
+        'notes' => 'nullable|string',
+        'items' => 'required|array|min:1',
 
-        if (!$order) {
+        'items.*.purchase_type' => 'required|in:product,offer',
+        'items.*.quantity'      => 'required|numeric|min:0.1',
+
+        'items.*.product_id' => 'nullable|exists:products,id',
+        'items.*.offer_id'   => 'nullable|exists:offers,id',
+    ]);
+
+    // تحقق يدوي حسب نوع السطر
+    foreach ($request->items as $index => $item) {
+        if (($item['purchase_type'] ?? null) === 'product' && empty($item['product_id'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'الطلب غير موجود أو لا تملك صلاحية الوصول إليه.'
-            ], 404);
+                'message' => "المنتج رقم " . ($index + 1) . " يجب أن يحتوي على product_id."
+            ], 422);
         }
 
-        // 3. التحقق من حالة الطلب الشرط الأساسي (pending)
-        if ($order->status !== 'pending') {
+        if (($item['purchase_type'] ?? null) === 'offer' && empty($item['offer_id'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'عذراً، لا يمكن تعديل الطلب لأنه قيد المعالجة أو تم الانتهاء منه.'
-            ], 403);
+                'message' => "العرض رقم " . ($index + 1) . " يجب أن يحتوي على offer_id."
+            ], 422);
         }
+    }
 
-        try {
-            DB::beginTransaction();
+    $order = Order::where('id', $orderId)
+        ->where('user_id', auth()->id())
+        ->first();
 
-            // مسح العناصر القديمة للطلب للبدء من جديد
-            $order->items()->delete();
+    if (!$order) {
+        return response()->json([
+            'success' => false,
+            'message' => 'الطلب غير موجود أو لا تملك صلاحية الوصول إليه.'
+        ], 404);
+    }
 
-            $totalAmount = 0;
-            $newOrderItems = [];
+    if ($order->status !== 'pending') {
+        return response()->json([
+            'success' => false,
+            'message' => 'عذراً، لا يمكن تعديل الطلب لأنه قيد المعالجة أو تم الانتهاء منه.'
+        ], 403);
+    }
 
-            // تحسين الأداء: جلب أسعار المنتجات المطلوبة دفعة واحدة لمنع استعلامات N+1
-            $productIds = collect($request->items)->pluck('product_id');
-            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+    try {
+        DB::beginTransaction();
 
-            // تجهيز العناصر الجديدة وحساب المجموع
-            foreach ($request->items as $item) {
+        // حذف العناصر القديمة
+        $order->items()->delete();
+
+        $totalAmount = 0;
+        $newOrderItems = [];
+
+        $productIds = collect($request->items)
+            ->where('purchase_type', 'product')
+            ->pluck('product_id')
+            ->filter()
+            ->unique();
+
+        $offerIds = collect($request->items)
+            ->where('purchase_type', 'offer')
+            ->pluck('offer_id')
+            ->filter()
+            ->unique();
+
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        $offers = Offer::whereIn('id', $offerIds)->get()->keyBy('id');
+
+        foreach ($request->items as $item) {
+            $quantity = (float) $item['quantity'];
+            $purchaseType = $item['purchase_type'];
+
+            $productId = null;
+            $offerId = null;
+            $secureUnitPrice = 0;
+
+            if ($purchaseType === 'product') {
                 $product = $products->get($item['product_id']);
-                
+
                 if (!$product) {
                     throw new \Exception('أحد المنتجات غير متوفر.');
                 }
 
-                // يمكنك تخصيص السعر هنا إذا كان يعتمد على purchase_type (مفرق/جملة)
-                $secureUnitPrice = ($item['purchase_type'] == 'طرد') 
-                                 ? $product->wholesale_price 
-                                 : $product->retail_price;
-                $subTotal = $secureUnitPrice * $item['quantity'];
-                $totalAmount += $subTotal;
+                $productId = $product->id;
 
-                // تجهيز المصفوفة للإدخال الجماعي
-                $newOrderItems[] = [
-                    'order_id'      => $order->id,
-                    'product_id'    => $item['product_id'],
-                    'purchase_type' => $item['purchase_type'],
-                    'quantity'      => $item['quantity'],
-                    'unit_price'    => $secureUnitPrice,
-                    'sub_total'     => $subTotal,
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
-                ];
+                $secureUnitPrice = ($item['purchase_type'] === 'طرد')
+                    ? (float) $product->wholesale_price
+                    : (float) $product->retail_price;
             }
-            // إدخال العناصر الجديدة دفعة واحدة (Bulk Insert) أسرع بكثير للطلبات الكبيرة
-            OrderItem::insert($newOrderItems);
 
-            // 4. تحديث بيانات الطلب الأساسية
-            $order->update([
-                'total_amount' => $totalAmount,
-                'notes'        => $request->notes ?? $order->notes,
-                
-                // نقطة حاسمة: إعادة هذه القيمة إلى false تضمن أن التعديل الجديد 
-                // سيتم التقاطه وتصديره لاحقاً عند المزامنة مع برنامج الأمين 
-                // ولن يتم تجاهله كطلب مسبق المزامنة.
-                'is_synced'    => false 
-            ]);
-            DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'تم تعديل الطلب بنجاح.',
-                'data'    => $order->load('items') // إرجاع الطلب مع التعديلات الجديدة
-            ], 200);
+            if ($purchaseType === 'offer') {
+                $offer = $offers->get($item['offer_id']);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error updating order: ' . $e->getMessage());
+                if (!$offer) {
+                    throw new \Exception('أحد العروض غير متوفر.');
+                }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'حدث خطأ أثناء تعديل الطلب.',
-                'error'   => config('app.debug') ? $e->getMessage() : null // إظهار الخطأ الدقيق فقط في بيئة التطوير
-            ], 500);
+                $offerId = $offer->id;
+
+                // الأفضل أن يكون للعرض سعر مستقل
+                $secureUnitPrice = (float) ($offer->offer_price ?? 0);
+
+                if ($secureUnitPrice <= 0) {
+                    throw new \Exception("العرض رقم {$offer->id} لا يحتوي على سعر صالح.");
+                }
+            }
+
+            $subTotal = $secureUnitPrice * $quantity;
+            $totalAmount += $subTotal;
+
+            $newOrderItems[] = [
+                'order_id'      => $order->id,
+                'product_id'    => $productId,
+                'offer_id'      => $offerId,
+                'purchase_type' => $purchaseType,
+                'quantity'      => $quantity,
+                'unit_price'    => $secureUnitPrice,
+                'sub_total'     => $subTotal,
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ];
         }
+
+        OrderItem::insert($newOrderItems);
+
+        $order->update([
+            'total_amount' => $totalAmount,
+            'notes'        => $request->notes ?? $order->notes,
+            'is_synced'    => false,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تعديل الطلب بنجاح.',
+            'data'    => $order->load(['items.product', 'items.offer'])
+        ], 200);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        Log::error('Error updating order: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'حدث خطأ أثناء تعديل الطلب.',
+            'error'   => config('app.debug') ? $e->getMessage() : null
+        ], 500);
     }
+}
 
     public function bulkSendToWarehouse(Request $request)
 {
