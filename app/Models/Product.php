@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\ExchangeRate;
+use App\Models\exchange_rate;
 
 class Product extends Model
 {
@@ -35,14 +35,14 @@ class Product extends Model
      */
     public function getRetailPriceAttribute($value)
     {
-        $rate = ExchangeRate::where('is_default', true)->value('rate') ?? 1;
+        $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
 
         return round($value / $rate, 2);
     }
 
     public function getWholesalePriceAttribute($value)
     {
-        $rate = ExchangeRate::where('is_default', true)->value('rate') ?? 1;
+        $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
 
         return round($value / $rate, 2);
     }
