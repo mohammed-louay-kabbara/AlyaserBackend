@@ -278,32 +278,13 @@ public function store(Request $request)
 public function updateOrder(Request $request, $orderId)
 {
     $request->validate([
-        'notes' => 'nullable|string',
-        'items' => 'required|array|min:1',
-
-        'items.*.purchase_type' => 'required|in:product,offer',
-        'items.*.quantity'      => 'required|numeric|min:0.1',
-
-        'items.*.product_id' => 'nullable|exists:products,id',
-        'items.*.offer_id'   => 'nullable|exists:offers,id',
+        'notes'                    => 'nullable|string',
+        'items'                    => 'required|array|min:1',
+        'items.*.quantity'         => 'required|numeric|min:0.1',
+        'items.*.purchase_type'    => 'required|in:قطعة,طرد,عرض',
+        'items.*.product_id'       => 'nullable|exists:products,id',
+        'items.*.offer_id'        => 'nullable|exists:offers,id',
     ]);
-
-    // تحقق يدوي حسب نوع السطر
-    foreach ($request->items as $index => $item) {
-        if (($item['purchase_type'] ?? null) === 'product' && empty($item['product_id'])) {
-            return response()->json([
-                'success' => false,
-                'message' => "المنتج رقم " . ($index + 1) . " يجب أن يحتوي على product_id."
-            ], 422);
-        }
-
-        if (($item['purchase_type'] ?? null) === 'offer' && empty($item['offer_id'])) {
-            return response()->json([
-                'success' => false,
-                'message' => "العرض رقم " . ($index + 1) . " يجب أن يحتوي على offer_id."
-            ], 422);
-        }
-    }
 
     $order = Order::where('id', $orderId)
         ->where('user_id', auth()->id())
@@ -326,26 +307,25 @@ public function updateOrder(Request $request, $orderId)
     try {
         DB::beginTransaction();
 
-        // حذف العناصر القديمة
         $order->items()->delete();
 
         $totalAmount = 0;
         $newOrderItems = [];
 
         $productIds = collect($request->items)
-            ->where('purchase_type', 'product')
+            ->whereIn('purchase_type', ['قطعة', 'طرد'])
             ->pluck('product_id')
             ->filter()
             ->unique();
 
         $offerIds = collect($request->items)
-            ->where('purchase_type', 'offer')
+            ->where('purchase_type', 'عرض')
             ->pluck('offer_id')
             ->filter()
             ->unique();
 
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
-        $offers = Offer::whereIn('id', $offerIds)->get()->keyBy('id');
+        $offers   = Offer::whereIn('id', $offerIds)->get()->keyBy('id');
 
         foreach ($request->items as $item) {
             $quantity = (float) $item['quantity'];
@@ -355,34 +335,40 @@ public function updateOrder(Request $request, $orderId)
             $offerId = null;
             $secureUnitPrice = 0;
 
-            if ($purchaseType === 'product') {
-                $product = $products->get($item['product_id']);
-
-                if (!$product) {
-                    throw new \Exception('أحد المنتجات غير متوفر.');
+            if ($purchaseType === 'عرض') {
+                if (empty($item['offer_id'])) {
+                    throw new \Exception('يجب إرسال offer_id للعرض.');
                 }
 
-                $productId = $product->id;
-
-                $secureUnitPrice = ($item['purchase_type'] === 'طرد')
-                    ? (float) $product->wholesale_price
-                    : (float) $product->retail_price;
-            }
-
-            if ($purchaseType === 'offer') {
                 $offer = $offers->get($item['offer_id']);
 
                 if (!$offer) {
-                    throw new \Exception('أحد العروض غير متوفر.');
+                    throw new \Exception('العرض غير موجود.');
                 }
 
                 $offerId = $offer->id;
-
-                // الأفضل أن يكون للعرض سعر مستقل
                 $secureUnitPrice = (float) ($offer->offer_price ?? 0);
 
                 if ($secureUnitPrice <= 0) {
                     throw new \Exception("العرض رقم {$offer->id} لا يحتوي على سعر صالح.");
+                }
+            } else {
+                if (empty($item['product_id'])) {
+                    throw new \Exception('يجب إرسال product_id للمنتج.');
+                }
+
+                $product = $products->get($item['product_id']);
+
+                if (!$product) {
+                    throw new \Exception('المنتج غير موجود.');
+                }
+
+                $productId = $product->id;
+
+                if ($purchaseType === 'طرد') {
+                    $secureUnitPrice = (float) $product->wholesale_price;
+                } else {
+                    $secureUnitPrice = (float) $product->retail_price;
                 }
             }
 
