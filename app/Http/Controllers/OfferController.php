@@ -38,7 +38,7 @@ class OfferController extends Controller
 
     public function getAdminOffers(Request $request)
     {
-        $offers = Offer::with('product')->get();
+        $offers = Offer::with('products')->get();
         $products = Product::all();
         return response()->json([
             'offers' => $offers,
@@ -88,7 +88,7 @@ public function store(Request $request)
     // 3. عرض عرض واحد بالتفصيل (Read Single)
     public function show($id)
     {
-        $offer = Offer::with('product')->find($id);
+        $offer = Offer::find($id);
         if (!$offer) return response()->json(['message' => 'العرض غير موجود'], 404);
         
         return response()->json($offer, 200);
@@ -102,21 +102,53 @@ public function store(Request $request)
 
         $request->validate([
             'description' => 'sometimes|string',
-            'expires_at'  => 'sometimes|date|after:now',
-            'product_id'  => 'sometimes|exists:products,id',
+            'expires_at'  => 'sometimes|date',
+            'price'       => 'sometimes|numeric|min:0',
             'image'       => 'sometimes|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        if ($request->hasFile('image')) {
-            // حذف الصورة القديمة
-            Storage::disk('public')->delete($offer->image);
-            // رفع الصورة الجديدة
-            $offer->image = $request->file('image')->store('offers', 'public');
+        try {
+            DB::beginTransaction();
+
+            // Update image if provided
+            if ($request->hasFile('image')) {
+                // حذف الصورة القديمة
+                Storage::disk('public')->delete($offer->image);
+                // رفع الصورة الجديدة
+                $offer->image = $request->file('image')->store('offers', 'public');
+            }
+
+            // Update basic fields
+            if ($request->filled('description')) {
+                $offer->description = $request->description;
+            }
+            if ($request->filled('expires_at')) {
+                $offer->expires_at = $request->expires_at;
+            }
+            if ($request->filled('price')) {
+                $offer->price = $request->price;
+            }
+            $offer->save();
+
+            // Update products if provided
+            if ($request->filled('products')) {
+                $products = json_decode($request->products, true);
+                // Remove all existing product relationships
+                $offer->products()->detach();
+                // Attach new products
+                foreach ($products as $item) {
+                    $offer->products()->attach($item['product_id'], [
+                        'quantity' => $item['quantity']
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'تم تحديث العرض بنجاح'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 500);
         }
-
-        $offer->update($request->only(['description', 'expires_at', 'product_id']));
-
-        return back();
     }
 
     // 5. حذف عرض (Delete)

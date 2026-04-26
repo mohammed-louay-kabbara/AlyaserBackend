@@ -38,7 +38,20 @@ class ExchangeRateController extends Controller
     public function update(Request $request, $id)
     {
         $rate = exchange_rate::findOrFail($id);
+        
+        // إذا تم تعيين هذه العملة كافتراضية، يجب إلغاء الافتراضية عن البقية
+        if ($request->is_default) {
+            exchange_rate::where('id', '!=', $id)->where('is_default', true)->update(['is_default' => false]);
+        }
+        
         $rate->update($request->all());
         return response()->json($rate, 200);
+    }
+
+    public function destroy($id)
+    {
+        $rate = exchange_rate::findOrFail($id);
+        $rate->delete();
+        return response()->json(['message' => 'Exchange rate deleted successfully'], 200);
     }
 }

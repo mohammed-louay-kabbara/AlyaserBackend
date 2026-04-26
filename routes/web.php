@@ -34,6 +34,12 @@ Route::middleware(['auth:web'])->group(function () {
     Route::post('add_order', [OrderController::class,'store'])->name('add_order');
     Route::resource('Category', CategoryController::class);
     Route::resource('warehouse', warehousecontroller::class);
+    
+    // Warehouse User Routes (role=3)
+    Route::get('/warehouse/dashboard', [warehousecontroller::class, 'dashboard'])->name('warehouse.dashboard');
+    Route::post('/warehouse/orders/{id}/ready', [warehousecontroller::class, 'markAsReady'])->name('warehouse.markAsReady');
+    Route::get('/warehouse/print/{id}', [warehousecontroller::class, 'printOrder'])->name('warehouse.print');
+    
     Route::get('Notifications', [NotificationController::class, 'Notification'])->name('Notifications');
     Route::get('notifications/{id}', [NotificationController::class, 'userNotifications'])->name('user.notifications');
     Route::post('warehouse/notifications', [NotificationController::class, 'sendWarehouseNotification'])->name('warehouse.notifications');
