@@ -59,10 +59,10 @@
                         <select name="status" class="form-select">
                             <option value="">جميع الحالات</option>
                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
-                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>قيد المعالجة</option>
-                            <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>جاهز</option>
-                            <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>تم التوصيل</option>
-                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>ملغي</option>
+                            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>قيد المعالجة</option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>جاهز</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>تم التوصيل</option>
+                            <option value="error" {{ request('status') == 'error' ? 'selected' : '' }}>مشكلة</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -112,10 +112,10 @@
                                                 $statusClass = 'status-' . $order->status;
                                                 $statusLabel = match($order->status) {
                                                     'pending' => 'قيد الانتظار',
-                                                    'processing' => 'قيد المعالجة',
-                                                    'ready' => 'جاهز',
-                                                    'delivered' => 'تم التوصيل',
-                                                    'cancelled' => 'ملغي',
+                                                    'confirmed' => 'قيد المعالجة',
+                                                    'processing' => 'جاهز',
+                                                    'completed' => 'تم التوصيل',
+                                                    'error' => 'مشكلة',
                                                     default => $order->status
                                                 };
                                             @endphp
@@ -126,7 +126,7 @@
                                                 <a href="{{ route('warehouse.print', $order->id) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                                     طباعة
                                                 </a>
-                                                @if($order->status != 'ready' && $order->status != 'delivered')
+                                                @if($order->status != 'completed' && $order->status != 'error')
                                                     <button type="button" class="btn btn-sm btn-success" onclick="markAsReady({{ $order->id }})">
                                                         جاهز
                                                     </button>
