@@ -24,21 +24,22 @@ Route::get('/', function () {
 Route::post('login_admin', [AuthController::class, 'login_admin'])->name('login_admin');
 Route::post('/forgot-password', [AdminController::class, 'forgot_password'])->name('forgot-password');
 Route::post('/logout_web', [AuthController::class, 'logout_web'])->name('logout_web');
-Route::get('warehouse/{id}', [warehousecontroller::class, 'show_orders'])->name('warehouse.orders');
+
 // --- المسارات المحمية ---
 // أي مسار داخل هذه المجموعة سيتطلب تسجيل الدخول
 Route::middleware(['auth:web'])->group(function () {
+    // Warehouse User Routes (role=3) - must come before dynamic route
+    Route::get('/warehouse/dashboard', [warehousecontroller::class, 'dashboard'])->name('warehouse.dashboard');
+    Route::post('/warehouse/orders/{id}/ready', [warehousecontroller::class, 'markAsReady'])->name('warehouse.markAsReady');
+    Route::get('/warehouse/print/{id}', [warehousecontroller::class, 'printOrder'])->name('warehouse.print');
+    
     Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
     Route::get('users', [AdminController::class, 'get_users'])->name('users');
     Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
     Route::post('add_order', [OrderController::class,'store'])->name('add_order');
     Route::resource('Category', CategoryController::class);
     Route::resource('warehouse', warehousecontroller::class);
-    
-    // Warehouse User Routes (role=3)
-    Route::get('/warehouse/dashboard', [warehousecontroller::class, 'dashboard'])->name('warehouse.dashboard');
-    Route::post('/warehouse/orders/{id}/ready', [warehousecontroller::class, 'markAsReady'])->name('warehouse.markAsReady');
-    Route::get('/warehouse/print/{id}', [warehousecontroller::class, 'printOrder'])->name('warehouse.print');
+    Route::get('warehouse/{id}', [warehousecontroller::class, 'show_orders'])->name('warehouse.orders');
     
     Route::get('Notifications', [NotificationController::class, 'Notification'])->name('Notifications');
     Route::get('notifications/{id}', [NotificationController::class, 'userNotifications'])->name('user.notifications');

@@ -39,10 +39,15 @@ public function login_admin(Request $request)
         
         $user = Auth::guard('web')->user();
 
+        if ($user->role == 3) {
+            return redirect()->route('warehouse.dashboard');
+        }
+
         if ($user->role != 1) { 
             Auth::guard('web')->logout();
             return back()->withErrors(['error' => 'غير مصرح لك بالدخول']);
         }
+
 
         $request->session()->regenerate();
         return redirect()->intended('/dashboard_admin');

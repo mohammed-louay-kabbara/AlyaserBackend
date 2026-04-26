@@ -182,10 +182,8 @@ class warehousecontroller extends Controller
         if (!$order) {
             return response()->json(['error' => 'الطلب غير موجود'], 404);
         }
-
-        $order->status = 'ready';
+        $order->status = 'processing';
         $order->save();
-
         return response()->json(['message' => 'تم تحديث حالة الطلب بنجاح'], 200);
     }
 
