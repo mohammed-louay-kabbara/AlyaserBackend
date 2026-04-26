@@ -35,6 +35,34 @@ class OrderController extends Controller
         return response()->json($orders, 200);
     }
 
+    public function getWarehouseUserOrders(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role != 3) {
+            return response()->json(['message' => 'غير مصرح'], 403);
+        }
+        
+        $orders = Order::with(['items.product', 'user'])->where('warehouse_id', $user->id)->latest()->get();
+        return response()->json($orders, 200);
+    }
+
+    public function updateOrderStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,processing,ready,delivered,cancelled'
+        ]);
+        
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['message' => 'الطلب غير موجود'], 404);
+        }
+        
+        $order->status = $request->status;
+        $order->save();
+        
+        return response()->json(['message' => 'تم تحديث حالة الطلب بنجاح'], 200);
+    }
+
 // public function update(Request $request, $id)
 // {
 //     $order = Order::findOrFail($id);

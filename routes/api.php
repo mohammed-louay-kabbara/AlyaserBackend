@@ -340,6 +340,10 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::get('/admin/orders/warehouse/{id}/json', [OrderController::class, 'getWarehouseOrdersJson']);
 
+    // Warehouse User Routes (role=3)
+    Route::get('/warehouse/orders', [OrderController::class, 'getWarehouseUserOrders']);
+    Route::put('/orders/{id}/status', [OrderController::class, 'updateOrderStatus']);
+
 
 
     
@@ -353,16 +357,32 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/admin/categories', [CategoryController::class, 'getAdminCategories']);
 
 
-
-    
-
-
-
     // Offers Management
 
 
 
     Route::get('/admin/offers', [OfferController::class, 'getAdminOffers']);
+    Route::post('/admin/offers_update/{id}', [OfferController::class, 'update']);
+
+
+
+    // Exchange Rates Management
+
+
+
+    Route::get('/admin/exchange-rates', [ExchangeRateController::class, 'index']);
+
+
+
+    Route::post('/admin/exchange-rates', [ExchangeRateController::class, 'store']);
+
+
+
+    Route::put('/admin/exchange-rates/{id}', [ExchangeRateController::class, 'update']);
+
+
+
+    Route::delete('/admin/exchange-rates/{id}', [ExchangeRateController::class, 'destroy']);
 
 
 
