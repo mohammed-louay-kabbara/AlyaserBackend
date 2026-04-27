@@ -260,6 +260,8 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('/admin/users/{id}/reset-password', [AdminController::class, 'resetPassword']);
 
+    Route::put('/admin/users/{id}/role', [AdminController::class, 'updateUserRole']);
+
 
 
     
@@ -355,6 +357,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
     Route::get('/admin/categories', [CategoryController::class, 'getAdminCategories']);
+    Route::post('/admin/categories/{id}/products', [CategoryController::class, 'assignProducts']);
 
 
     // Offers Management

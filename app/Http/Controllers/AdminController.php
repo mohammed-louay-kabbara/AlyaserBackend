@@ -110,6 +110,23 @@ public function bulkToggleStatus(Request $request)
     ]);
 }
 
+public function updateUserRole(Request $request, $id)
+{
+    $request->validate([
+        'role' => 'required|integer|in:1,2,3'
+    ]);
+
+    $user = User::find($id);
+    if (!$user) {
+        return response()->json(['error' => 'المستخدم غير موجود'], 404);
+    }
+
+    $user->role = $request->role;
+    $user->save();
+
+    return response()->json(['message' => 'تم تحديث دور المستخدم بنجاح'], 200);
+}
+
 public function dashboardStats()
 {
     $users_count = User::count();
