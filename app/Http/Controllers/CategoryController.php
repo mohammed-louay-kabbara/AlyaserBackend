@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\category;
+use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -141,5 +142,20 @@ class CategoryController extends Controller
         }
         $category->delete();
         return response()->json(['message' => 'تم حذف القسم بنجاح'], 200);
+    }
+
+    public function assignProducts(Request $request, $id)
+    {
+        $request->validate([
+            'product_ids' => 'required|array',
+            'product_ids.*' => 'integer|exists:products,id'
+        ]);
+
+        $category = category::findOrFail($id);
+        
+        // Update category_id for each product (one-to-many relationship)
+        Product::whereIn('id', $request->product_ids)->update(['category_id' => $id]);
+
+        return response()->json(['message' => 'تم إضافة المنتجات بنجاح'], 200);
     }
 }
