@@ -487,6 +487,8 @@ public function printOrders(Request $request)
         'margin_right' => 10,
         'margin_top' => 10,
         'margin_bottom' => 10,
+        'default_font' => 'dejavusans',
+        'tempDir' => storage_path('app/mpdf_temp'),
     ]);
 
     $html = view('print_orders', compact('orders'))->render();
