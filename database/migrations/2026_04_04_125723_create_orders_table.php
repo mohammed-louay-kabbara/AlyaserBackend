@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->decimal('total_amount', 15, 2); // الإجمالي النهائي
-            $table->string('status')->default('pending'); // pending, confirmed, processing, completed, cancelled
+            $table->string('status')->default('pending'); // pending, confirmed, processing, completed, error
             $table->text('notes')->nullable(); 
             $table->uuid('ameen_guid')->nullable(); 
             $table->boolean('is_synced')->default(false);
