@@ -402,7 +402,7 @@ public function searchAdmin(Request $request)
     return response()->json($products);
 }
 public function delete_all(){
-   Product::delete();
+   Product::whereNotNull('id')->delete();
    return response()->json([
     'status' => true,
     'message' => 'تم الحذف بنجاح'
