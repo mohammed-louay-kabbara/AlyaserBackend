@@ -456,6 +456,7 @@ Route::middleware(['auth:api'])->group(function () {
 });
 
     Route::post('/admin/roles', [RoleController::class, 'store']);
+Route::post('/delete_all', [ProductController::class, 'delete_all']);
 
 
 
