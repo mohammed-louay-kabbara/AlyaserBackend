@@ -113,7 +113,7 @@ public function login_admin(Request $request)
                 'shop_name' => $request->shop_name,
                 'address'   => $request->address,
                 'password'  => Hash::make($request->password),
-                'role_id'      => 1, // مستخدم عادي افتراضياً
+                'role_id'      => 2, // مستخدم عادي افتراضياً
             ]);
             
             $token = auth()->login($user);
