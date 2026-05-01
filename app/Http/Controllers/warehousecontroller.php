@@ -18,7 +18,7 @@ class warehousecontroller extends Controller
     {
         $search = $request->input('search');
         $warehouses = User::whereHas('role', function ($query) {
-            $query->where('name', 'مستودع');
+            $query->where('name', 'مدير المستودع');
         })
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'LIKE', "%{$search}%")
@@ -33,7 +33,7 @@ class warehousecontroller extends Controller
     {
         $search = $request->input('search');
         $warehouses = User::whereHas('role', function ($query) {
-            $query->where('name', 'مستودع');
+            $query->where('name', 'مدير المستودع');
         })
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'LIKE', "%{$search}%")
@@ -73,7 +73,7 @@ class warehousecontroller extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
-        $role = Role::where('name', 'مستودع')->first();
+        $role = Role::where('name', 'مدير المستودع')->first();
 
         $warehouse = User::create([
             'name' => $request->name,
@@ -153,7 +153,7 @@ class warehousecontroller extends Controller
     public function dashboard(Request $request)
     {
         $user = Auth::user();
-        if (!$user || $user->role->name != 'مستودع') {
+        if (!$user || $user->role->name != 'مدير المستودع') {
             return redirect('/')->with('error', 'غير مصرح');
         }
 
@@ -180,7 +180,7 @@ class warehousecontroller extends Controller
     public function markAsReady(Request $request, $id)
     {
         $user = Auth::user();
-        if (!$user || $user->role->name != 'مستودع') {
+        if (!$user || $user->role->name != 'مدير المستودع') {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -196,7 +196,7 @@ class warehousecontroller extends Controller
     public function printOrder($id)
     {
         $user = Auth::user();
-        if (!$user || $user->role->name != 'مستودع') {
+        if (!$user || $user->role->name != 'مدير المستودع') {
             return redirect('/')->with('error', 'غير مصرح');
         }
 
