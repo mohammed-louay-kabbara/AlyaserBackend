@@ -49,8 +49,8 @@ class RoleController extends Controller
         $request->validate([
             'name_en' => 'required|string|unique:roles,name_en',
             'name_ar' => 'required|string',
-            'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id'
+            // 'permissions' => 'array',
+            // 'permissions.*' => 'exists:permissions,id'
         ]);
 
         DB::beginTransaction();
