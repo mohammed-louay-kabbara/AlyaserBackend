@@ -26,6 +26,10 @@ class AuthController extends Controller
     
     return redirect('/');
 }
+public function get_user($id){
+    $user=User::where('id',$id)->first();
+    return response()->json($user, 200);
+}
 
 public function login_admin(Request $request)
 {
