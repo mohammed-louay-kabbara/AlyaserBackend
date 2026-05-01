@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             // Make wholesale_price nullable to allow NULL values
-            $table->decimal('wholesale_price', 15, 2)->change();
+            $table->decimal('wholesale_price', 15, 2)->default(0)->change();
         });
     }
 
@@ -24,7 +24,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             // Make wholesale_price not nullable again
-            $table->decimal('wholesale_price', 15, 2)->change();
+            $table->decimal('wholesale_price', 15, 2)->default(0)->change();
         });
     }
 };
