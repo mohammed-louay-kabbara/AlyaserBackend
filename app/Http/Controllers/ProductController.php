@@ -31,103 +31,72 @@ public function syncWithAmeen(Request $request)
         try {
             set_time_limit(0);
             
-            // 1. إضافة الأعمدة الناقصة والتي تحتوي على السعر الفعلي
             $ameenProducts = DB::connection('ameen')
                 ->table('mt000')
                 ->select(
                     'GUID', 
                     'Name', 
-                    'Unity',       // الوحدة الأولى (كيس، علبة..)
-                    'Unit2',       // الوحدة الثانية (طرد، كرتونة..)
-                    'Unit2Fact',   // عامل التحويل (كم قطعة في الطرد)
+                    'Unity',      // الوحدة 1
+                    'Unit2',      // الوحدة 2
+                    'Unit2Fact',  // عامل التحويل
                     'Qty',
-                    'Retail',      // سعر مفرق وحدة 1
-                    'Whole',       // سعر جملة وحدة 1
-                    'LastPrice',   // آخر سعر وحدة 1 (وهو السعر المستخدم في صورتك)
-                    'MaxPrice',    // أعلى سعر وحدة 1
-                    'Retail2',     // سعر مفرق وحدة 2
-                    'Whole2',      // سعر جملة وحدة 2
-                    'LastPrice2',  // آخر سعر وحدة 2 (المستخدم في صورتك للطرد)
-                    'MaxPrice2'    // أعلى سعر وحدة 2
+                    'MaxPrice',   // السعر الحقيقي للوحدة 1 (كما أكدت)
+                    'MaxPrice2'   // السعر الحقيقي للوحدة 2 (كما أكدت)
                 )
                 ->where('bHide', 0)
                 ->get();
 
-            $count = 0;
             $updated = 0;
             $created = 0;
 
             foreach ($ameenProducts as $product) {
                 
-                // 2. منطق استخراج السعر الصحيح للوحدة الأساسية (القطعة/الكيس)
-                // نعتمد على LastPrice لأنه السعر الظاهر في فاتورتك، وإذا كان صفراً نأخذ Retail
-                $baseRetailPrice = ($product->LastPrice > 0) ? $product->LastPrice : ($product->Retail ?? 0);
-                $baseWholePrice = $product->Whole ?? 0;
+                // 1. تحديد سعر الوحدة الأولى (المفرق) من الحقل الصحيح
+                $finalPrice = $product->MaxPrice ?? 0;
 
-                // 3. التحقق من السعر في حال كان السعر للوحدة الأساسية غير مسجل، 
-                // ومسجل فقط للوحدة الثانية (الطرد)
-                if ($baseRetailPrice == 0 && $product->Unit2Fact > 0) {
-                    $packagePrice = ($product->LastPrice2 > 0) ? $product->LastPrice2 : ($product->Retail2 ?? 0);
-                    if ($packagePrice > 0) {
-                        $baseRetailPrice = $packagePrice / $product->Unit2Fact;
-                    }
+                // 2. إذا كان المنتج يباع بالوحدة الثانية (الطرد) حصراً أو كان سعر الأولى 0
+                // يمكننا حساب سعر القطعة الواحدة من سعر الطرد لضمان الدقة
+                if ($finalPrice == 0 && ($product->MaxPrice2 > 0 && $product->Unit2Fact > 0)) {
+                    $finalPrice = $product->MaxPrice2 / $product->Unit2Fact;
                 }
 
-                if ($baseWholePrice == 0 && $product->Unit2Fact > 0 && $product->Whole2 > 0) {
-                     $baseWholePrice = $product->Whole2 / $product->Unit2Fact;
-                }
+                // 3. تحديث أو إنشاء في قاعدة البيانات
+                $sync = Product::updateOrCreate(
+                    ['ameen_guid' => $product->GUID], // البحث عن المنتج عبر GUID
+                    [
+                        'name'         => $product->Name,
+                        'retail_price' => $finalPrice, // السعر من MaxPrice
+                        'quantity'     => $product->Qty ?? 0,
+                    ]
+                );
 
-                // 4. تحديث أو إنشاء المنتج في قاعدة بيانات لارافيل
-                $existingProduct = Product::where('ameen_guid', $product->GUID)->first();
-                
-                if ($existingProduct) {
-                    // تحديث المنتج الموجود فقط إذا تغيرت البيانات
-                    if ($existingProduct->name != $product->Name ||
-                        $existingProduct->retail_price != $baseRetailPrice ||
-                        $existingProduct->wholesale_price != $baseWholePrice ||
-                        $existingProduct->quantity != $product->Qty) {
-                        
-                        $existingProduct->update([
-                            'name'            => $product->Name,
-                            'retail_price'    => $baseRetailPrice, 
-                            'wholesale_price' => $baseWholePrice,  
-                            'quantity'        => $product->Qty ?? 0,
-                        ]);
-                        $updated++;
-                    }
-                } else {
-                    // إنشاء منتج جديد
-                    Product::create([
-                        'ameen_guid'      => $product->GUID,
-                        'name'            => $product->Name,
-                        'retail_price'    => $baseRetailPrice, 
-                        'wholesale_price' => $baseWholePrice,  
-                        'quantity'        => $product->Qty ?? 0,
-                    ]);
-                    $created++;
-                }
-                
-                $count++;
+                $sync->wasRecentlyCreated ? $created++ : $updated++;
             }
 
             return response()->json([
-                'success' => true,
-                'message' => "تمت المزامنة بنجاح! إجمالي: {$count} منتج، جديد: {$created}، محدث: {$updated}",
-                'stats' => [
-                    'total' => $count,
-                    'created' => $created,
-                    'updated' => $updated
-                ]
+                'status'  => 'success',
+                'message' => "تمت المزامنة بنجاح باستخدام حقول MaxPrice",
+                'counts'  => ['new' => $created, 'updated' => $updated]
             ]);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'خطأ في المزامنة: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    
+    public function debugAmeenPrice()
+    {
+        // ضع هنا اسم منتج أو جزء من اسمه أنت متأكد من سعره في الأمين
+        $searchName = 'عدس مجروش الشيف نديم(1كغ)'; 
+
+        $product = DB::connection('ameen')
+            ->table('mt000')
+            ->where('Name', 'like', '%' . $searchName . '%')
+            ->first();
+
+        // هذه الدالة ستوقف الكود وتعرض لك كل الأعمدة والقيم في المتصفح
+        dd($product); 
+    }
+
     public function index()
     {
         $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
