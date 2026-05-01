@@ -127,13 +127,16 @@ public function updateUserRole(Request $request, $id)
     return response()->json(['message' => 'تم تحديث دور المستخدم بنجاح'], 200);
 }
 
+
+
+
 public function dashboardStats()
 {
     $users_count = User::count();
     $activated = User::where('activated', 0)->count();
+    $category = category::count();
     $Product_count = Product::where('quantity', '>=',1)->count();
     $Product_quantity = Product::where('quantity','<=', 8)->count();
-    $Product_quantity = Product::where('quantity', 0)->count();
     $Order_pending = Order::where('status', 'pending')->count();
     $Order_processing = Order::where('status', 'processing')->count();
     $Offers_count = Offer::where('expires_at', '>', now())->count();
