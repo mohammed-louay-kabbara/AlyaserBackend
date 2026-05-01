@@ -46,6 +46,7 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
+        dd('test')
         // $request->validate([
         //     'name_en' => 'required|string|unique:roles,name_en',
         //     'name_ar' => 'required|string',
