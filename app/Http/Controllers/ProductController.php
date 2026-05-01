@@ -60,13 +60,22 @@ public function syncWithAmeen(Request $request)
                     $finalPrice = $product->MaxPrice2 / $product->Unit2Fact;
                 }
 
-                // 3. تحديث أو إنشاء في قاعدة البيانات
+                // 3. تحديد سعر الجملة من MaxPrice2
+                $wholesalePrice = $product->MaxPrice2 ?? 0;
+                
+                // إذا كان سعر الجملة 0 وسعر المفرق موجود، يمكن استخدام سعر المفرق كقيمة افتراضية
+                if ($wholesalePrice == 0 && $finalPrice > 0) {
+                    $wholesalePrice = $finalPrice;
+                }
+
+                // 4. تحديث أو إنشاء في قاعدة البيانات
                 $sync = Product::updateOrCreate(
                     ['ameen_guid' => $product->GUID], // البحث عن المنتج عبر GUID
                     [
-                        'name'         => $product->Name,
-                        'retail_price' => $finalPrice, // السعر من MaxPrice
-                        'quantity'     => $product->Qty ?? 0,
+                        'name'           => $product->Name,
+                        'retail_price'   => $finalPrice, // السعر من MaxPrice
+                        'wholesale_price'=> $wholesalePrice, // السعر من MaxPrice2
+                        'quantity'       => $product->Qty ?? 0,
                     ]
                 );
 
