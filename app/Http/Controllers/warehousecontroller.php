@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Order;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -16,7 +17,9 @@ class warehousecontroller extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $warehouses = User::where('role', 3)
+        $warehouses = User::whereHas('role', function ($query) {
+            $query->where('name', 'مستودع');
+        })
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'LIKE', "%{$search}%")
                             ->orWhere('phone', 'LIKE', "%{$search}%");
@@ -29,7 +32,9 @@ class warehousecontroller extends Controller
     public function getAdminWarehouses(Request $request)
     {
         $search = $request->input('search');
-        $warehouses = User::where('role', 3)
+        $warehouses = User::whereHas('role', function ($query) {
+            $query->where('name', 'مستودع');
+        })
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'LIKE', "%{$search}%")
                             ->orWhere('phone', 'LIKE', "%{$search}%");
@@ -68,13 +73,15 @@ class warehousecontroller extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
+        $role = Role::where('name', 'مستودع')->first();
+
         $warehouse = User::create([
             'name' => $request->name,
             'phone'=> $request->phone,
             'address'=> $request->address,
             'zone' => $request->zone,
             'password'  => Hash::make($request->password),
-            'role' => 3,
+            'role_id' => $role->id,
             'activated' => 1
         ]);
         return response()->json(['message' => 'تمت إضافة المستودع بنجاح', 'warehouse' => $warehouse], 201);
@@ -115,7 +122,6 @@ class warehousecontroller extends Controller
             'phone'=> $request->phone,
             'address'=> $request->address,
             'zone' => $request->zone,
-            'role' => 3,
             'activated' => 1
         ];
 
@@ -147,7 +153,7 @@ class warehousecontroller extends Controller
     public function dashboard(Request $request)
     {
         $user = Auth::user();
-        if (!$user || $user->role != 3) {
+        if (!$user || $user->role->name != 'مستودع') {
             return redirect('/')->with('error', 'غير مصرح');
         }
 
@@ -174,7 +180,7 @@ class warehousecontroller extends Controller
     public function markAsReady(Request $request, $id)
     {
         $user = Auth::user();
-        if (!$user || $user->role != 3) {
+        if (!$user || $user->role->name != 'مستودع') {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -190,7 +196,7 @@ class warehousecontroller extends Controller
     public function printOrder($id)
     {
         $user = Auth::user();
-        if (!$user || $user->role != 3) {
+        if (!$user || $user->role->name != 'مستودع') {
             return redirect('/')->with('error', 'غير مصرح');
         }
 
