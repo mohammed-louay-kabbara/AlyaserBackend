@@ -26,22 +26,29 @@ class ProductController extends Controller
         ]);
         return response()->json('تم الحفظ بنجاح', 200);
     }
-    public function syncWithAmeen(Request $request)
+public function syncWithAmeen(Request $request)
     {
         try {
             set_time_limit(0);
             
+            // 1. إضافة الأعمدة الناقصة والتي تحتوي على السعر الفعلي
             $ameenProducts = DB::connection('ameen')
                 ->table('mt000')
                 ->select(
                     'GUID', 
                     'Name', 
-                    'Retail',    // سعر مفرق للوحدة الواحدة
-                    'Whole',     // سعر جملة للوحدة الواحدة
-                    'Whole2',    // سعر جملة للوحدة الثانية (الطرد كامل)
-                    'Unit2Fact', // عدد الوحدات في الطرد
-                    'Unit2',     // اسم الوحدة الثانية
-                    'Qty'
+                    'Unity',       // الوحدة الأولى (كيس، علبة..)
+                    'Unit2',       // الوحدة الثانية (طرد، كرتونة..)
+                    'Unit2Fact',   // عامل التحويل (كم قطعة في الطرد)
+                    'Qty',
+                    'Retail',      // سعر مفرق وحدة 1
+                    'Whole',       // سعر جملة وحدة 1
+                    'LastPrice',   // آخر سعر وحدة 1 (وهو السعر المستخدم في صورتك)
+                    'MaxPrice',    // أعلى سعر وحدة 1
+                    'Retail2',     // سعر مفرق وحدة 2
+                    'Whole2',      // سعر جملة وحدة 2
+                    'LastPrice2',  // آخر سعر وحدة 2 (المستخدم في صورتك للطرد)
+                    'MaxPrice2'    // أعلى سعر وحدة 2
                 )
                 ->where('bHide', 0)
                 ->get();
@@ -52,40 +59,38 @@ class ProductController extends Controller
 
             foreach ($ameenProducts as $product) {
                 
-                // منطق تصحيح السعر الصحيح:
-                // Retail = سعر مفرق للوحدة الواحدة (القطعة)
-                // Whole = سعر جملة للوحدة الواحدة (القطعة بالجملة)
-                // Whole2 = سعر الطرد كامل (مجموع سعر الوحدات في الطرد)
-                
-                $retailPrice = $product->Retail ?? 0;
-                $wholesalePrice = $product->Whole ?? 0;
-                
-                // التحقق من صحة البيانات:
-                // إذا كان سعر الجملة (Whole) غير منطقي (أعلى من المفرق)،
-                // نحاول حساب سعر الجملة الصحيح من Whole2
-                if ($product->Whole2 > 0 && $product->Unit2Fact > 0) {
-                    $calculatedWholesalePrice = $product->Whole2 / $product->Unit2Fact;
-                    
-                    // استخدام السعر المحسوب إذا كان منطقياً
-                    if ($calculatedWholesalePrice > 0 && $calculatedWholesalePrice < $retailPrice) {
-                        $wholesalePrice = $calculatedWholesalePrice;
+                // 2. منطق استخراج السعر الصحيح للوحدة الأساسية (القطعة/الكيس)
+                // نعتمد على LastPrice لأنه السعر الظاهر في فاتورتك، وإذا كان صفراً نأخذ Retail
+                $baseRetailPrice = ($product->LastPrice > 0) ? $product->LastPrice : ($product->Retail ?? 0);
+                $baseWholePrice = $product->Whole ?? 0;
+
+                // 3. التحقق من السعر في حال كان السعر للوحدة الأساسية غير مسجل، 
+                // ومسجل فقط للوحدة الثانية (الطرد)
+                if ($baseRetailPrice == 0 && $product->Unit2Fact > 0) {
+                    $packagePrice = ($product->LastPrice2 > 0) ? $product->LastPrice2 : ($product->Retail2 ?? 0);
+                    if ($packagePrice > 0) {
+                        $baseRetailPrice = $packagePrice / $product->Unit2Fact;
                     }
                 }
 
-                // تحديث أو إنشاء المنتج
+                if ($baseWholePrice == 0 && $product->Unit2Fact > 0 && $product->Whole2 > 0) {
+                     $baseWholePrice = $product->Whole2 / $product->Unit2Fact;
+                }
+
+                // 4. تحديث أو إنشاء المنتج في قاعدة بيانات لارافيل
                 $existingProduct = Product::where('ameen_guid', $product->GUID)->first();
                 
                 if ($existingProduct) {
                     // تحديث المنتج الموجود فقط إذا تغيرت البيانات
                     if ($existingProduct->name != $product->Name ||
-                        $existingProduct->retail_price != $retailPrice ||
-                        $existingProduct->wholesale_price != $wholesalePrice ||
+                        $existingProduct->retail_price != $baseRetailPrice ||
+                        $existingProduct->wholesale_price != $baseWholePrice ||
                         $existingProduct->quantity != $product->Qty) {
                         
                         $existingProduct->update([
                             'name'            => $product->Name,
-                            'retail_price'    => $retailPrice,      // سعر القطعة بالمفرق
-                            'wholesale_price' => $wholesalePrice,   // سعر القطعة بالجملة
+                            'retail_price'    => $baseRetailPrice, 
+                            'wholesale_price' => $baseWholePrice,  
                             'quantity'        => $product->Qty ?? 0,
                         ]);
                         $updated++;
@@ -95,8 +100,8 @@ class ProductController extends Controller
                     Product::create([
                         'ameen_guid'      => $product->GUID,
                         'name'            => $product->Name,
-                        'retail_price'    => $retailPrice,      // سعر القطعة بالمفرق
-                        'wholesale_price' => $wholesalePrice,   // سعر القطعة بالجملة
+                        'retail_price'    => $baseRetailPrice, 
+                        'wholesale_price' => $baseWholePrice,  
                         'quantity'        => $product->Qty ?? 0,
                     ]);
                     $created++;
@@ -122,6 +127,7 @@ class ProductController extends Controller
             ], 500);
         }
     }
+    
     public function index()
     {
         $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
