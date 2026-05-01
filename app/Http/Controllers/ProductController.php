@@ -40,8 +40,8 @@ public function syncWithAmeen(Request $request)
                     'Unit2',      // الوحدة 2
                     'Unit2Fact',  // عامل التحويل
                     'Qty',
-                    'MaxPrice',   // السعر الحقيقي للوحدة 1 (كما أكدت)
-                    'MaxPrice2'   // السعر الحقيقي للوحدة 2 (كما أكدت)
+                    'LastPrice',   // السعر الحقيقي للوحدة 1 (كما أكدت)
+                    'LastPrice2'   // السعر الحقيقي للوحدة 2 (كما أكدت)
                 )
                 ->where('bHide', 0)
                 ->get();
@@ -52,16 +52,16 @@ public function syncWithAmeen(Request $request)
             foreach ($ameenProducts as $product) {
                 
                 // 1. تحديد سعر الوحدة الأولى (المفرق) من الحقل الصحيح
-                $finalPrice = $product->MaxPrice ?? 0;
+                $finalPrice = $product->LastPrice ?? 0;
 
                 // 2. إذا كان المنتج يباع بالوحدة الثانية (الطرد) حصراً أو كان سعر الأولى 0
                 // يمكننا حساب سعر القطعة الواحدة من سعر الطرد لضمان الدقة
-                if ($finalPrice == 0 && ($product->MaxPrice2 > 0 && $product->Unit2Fact > 0)) {
-                    $finalPrice = $product->MaxPrice2 / $product->Unit2Fact;
+                if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
+                    $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
                 }
 
-                // 3. تحديد سعر الجملة من MaxPrice2
-                $wholesalePrice = $product->MaxPrice2 ?? 0;
+                // 3. تحديد سعر الجملة من LastPrice2
+                $wholesalePrice = $product->LastPrice2 ?? 0;
                 
                 // إذا كان سعر الجملة 0 وسعر المفرق موجود، يمكن استخدام سعر المفرق كقيمة افتراضية
                 if ($wholesalePrice == 0 && $finalPrice > 0) {
@@ -73,8 +73,8 @@ public function syncWithAmeen(Request $request)
                     ['ameen_guid' => $product->GUID], // البحث عن المنتج عبر GUID
                     [
                         'name'           => $product->Name,
-                        'retail_price'   => $finalPrice, // السعر من MaxPrice
-                        'wholesale_price'=> $wholesalePrice, // السعر من MaxPrice2
+                        'retail_price'   => $finalPrice, // السعر من LastPrice
+                        'wholesale_price'=> $wholesalePrice, // السعر من LastPrice2
                         'quantity'       => $product->Qty ?? 0,
                     ]
                 );
@@ -84,7 +84,7 @@ public function syncWithAmeen(Request $request)
 
             return response()->json([
                 'status'  => 'success',
-                'message' => "تمت المزامنة بنجاح باستخدام حقول MaxPrice",
+                'message' => "تمت المزامنة بنجاح باستخدام حقول LastPrice",
                 'counts'  => ['new' => $created, 'updated' => $updated]
             ]);
 
