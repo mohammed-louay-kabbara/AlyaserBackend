@@ -441,7 +441,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::get('/admin/roles/{id}', [RoleController::class, 'show']);
 
-    Route::post('/admin/roles', [RoleController::class, 'store']);
+
 
     Route::put('/admin/roles/{id}', [RoleController::class, 'update']);
 
@@ -454,6 +454,8 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 });
+
+    Route::post('/admin/roles', [RoleController::class, 'store']);
 
 
 
