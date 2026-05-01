@@ -9,7 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable implements JWTSubject
 {
     protected $fillable = [
-        'name', 'phone', 'password', 'zone', 'shop_name', 'address', 'role', 'activated', 'fcm_token'
+        'name', 'phone', 'password', 'zone', 'shop_name', 'address', 'role', 'role_id', 'activated', 'fcm_token'
     ];
 
     use Notifiable;
@@ -28,6 +28,14 @@ class User extends Authenticatable implements JWTSubject
     public function notifications()
     {
         return $this->hasMany(UserNotification::class);
+    }
+
+    /**
+     * Get the role that belongs to the user.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     /**

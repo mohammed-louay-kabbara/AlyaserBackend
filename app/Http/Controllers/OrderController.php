@@ -38,7 +38,7 @@ class OrderController extends Controller
     public function getWarehouseUserOrders(Request $request)
     {
         $user = Auth::user();
-        if (!$user || $user->role != 3) {
+        if (!$user || $user->role_id != 3) {
             return response()->json(['message' => 'غير مصرح'], 403);
         }
         
@@ -201,7 +201,7 @@ public function get_order(Request $request)
     if ($request->filled('status')) {
         $query->where('status', $request->status);
     }
-    $warehouses = User::where('role', 3)->get();
+    $warehouses = User::where('role_id', 3)->get();
     $orders = $query->paginate(20); 
     return view('orders', compact('orders', 'warehouses','products'));
 }
@@ -547,7 +547,7 @@ public function getAdminOrders(Request $request)
         $query->where('status', $request->status);
     }
 
-    $warehouses = User::where('role', 3)->get();
+    $warehouses = User::where('role_id', 3)->get();
     $products = Product::select('id', 'name')->get();
     $orders = $query->paginate(20);
 

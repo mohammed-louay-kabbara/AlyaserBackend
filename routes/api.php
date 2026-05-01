@@ -56,6 +56,8 @@ use App\Http\Controllers\AdminController;
 
 use App\Http\Controllers\warehousecontroller;
 
+use App\Http\Controllers\RoleController;
+
 
 
 
@@ -430,6 +432,24 @@ Route::middleware(['auth:api'])->group(function () {
 
 
     Route::get('/admin/notifications/user/{id}/json', [NotificationController::class, 'getUserNotificationsJson']);
+
+
+
+    // Roles & Permissions Management
+
+    Route::get('/admin/roles', [RoleController::class, 'index']);
+
+    Route::get('/admin/roles/{id}', [RoleController::class, 'show']);
+
+    Route::post('/admin/roles', [RoleController::class, 'store']);
+
+    Route::put('/admin/roles/{id}', [RoleController::class, 'update']);
+
+    Route::delete('/admin/roles/{id}', [RoleController::class, 'destroy']);
+
+    Route::get('/admin/permissions', [RoleController::class, 'getPermissions']);
+
+    Route::post('/admin/roles/seed', [RoleController::class, 'seed']);
 
 
 

@@ -39,11 +39,11 @@ public function login_admin(Request $request)
         
         $user = Auth::guard('web')->user();
 
-        if ($user->role == 3) {
+        if ($user->role_id == 3) {
             return redirect()->route('warehouse.dashboard');
         }
 
-        if ($user->role != 1) { 
+        if ($user->role_id != 1) { 
             Auth::guard('web')->logout();
             return back()->withErrors(['error' => 'غير مصرح لك بالدخول']);
         }
@@ -61,7 +61,7 @@ public function login_admin(Request $request)
     }
     public function admin()
     {
-        User::where('id',Auth::id())->update([ 'role' => 1]);
+        User::where('id',Auth::id())->update([ 'role_id' => 1]);
         return response()->json(['لقد أصبحت ادمن'], 200);
     }
 
@@ -113,7 +113,7 @@ public function login_admin(Request $request)
                 'shop_name' => $request->shop_name,
                 'address'   => $request->address,
                 'password'  => Hash::make($request->password),
-                'role'      => 2, // مستخدم عادي افتراضياً
+                'role_id'      => 1, // مستخدم عادي افتراضياً
             ]);
             
             $token = auth()->login($user);
