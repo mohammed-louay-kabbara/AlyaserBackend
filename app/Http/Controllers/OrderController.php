@@ -219,29 +219,52 @@ public function sendToWarehouse($id)
 }
 public function exportOrderToAmeenTxt($id)
     {
-        // جلب بيانات الفاتورة من قاعدة بيانات التطبيق (Laravel)
         $order = Order::with('items.product')->findOrFail($id);
 
-        // بداية محتوى الملف بناءً على عينة louay.txt
-        $content = "V=2.0\r\n"; // إصدار التصدير[cite: 1]
+        $content = ""; // نبدأ بملف فارغ تماماً بدون V=2.0
 
         foreach ($order->items as $item) {
-            $guid = $item->product->ameen_guid; // المعرف من جدول المنتجات
-            $qty = number_format($item->quantity, 2, '.', ''); // الكمية
-            $price = number_format($item->price, 2, '.', ''); // السعر
+            // جلب GUID وتحويله إلى أحرف صغيرة ليطابق تنسيق ملف louay.txt
+            $guid = strtolower($item->product->ameen_guid); 
+            
+            // تنسيق الأرقام بدون فاصلة آلاف لضمان عدم حدوث خطأ في الأعمدة
+            $qty = number_format($item->quantity, 2, '.', ''); 
+            $price = number_format($item->price, 2, '.', ''); 
 
-            // بناء سطر المادة (I) بناءً على الترتيب في ملفك المرجعي[cite: 1]
-            // الحقول مفصولة بـ Tab (\t)
-            $content .= "I={$guid}\t{$qty}\t1\t{$price}\t0.00\t0.00\t1\t\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t\t\t01-01-1980\t01-01-1980\t0.00\r\n";
+            // بناء السطر بالاعتماد الدقيق على التبويبات في ملفك المرجعي
+            // ملاحظة: الحقل السابع في ملفك هو '1' (غالباً للعملة أو المستودع)
+            $fields = [
+                "I={$guid}", // 1. المعرف
+                $qty,        // 2. الكمية
+                "1",         // 3. رقم الوحدة
+                $price,      // 4. السعر
+                "0.00",      // 5. حسم %
+                "0.00",      // 6. قيمة الحسم
+                "1",         // 7. العملة (ليرة سورية حسب ملفك)
+                "",          // 8. حقل فارغ
+                "0.00",      // 9.
+                "0.00",      // 10.
+                "0.00",      // 11.
+                "0.00",      // 12.
+                "0.00",      // 13.
+                "0.00",      // 14.
+                "0.00",      // 15.
+                "",          // 16. حقل فارغ
+                "",          // 17. حقل فارغ
+                "01-01-1980", // 18. تاريخ الصلاحية
+                "01-01-1980", // 19. تاريخ الإنتاج
+                "0.00"       // 20.
+            ];
+
+            // دمج الحقول بـ Tab حقيقي
+            $content .= implode("\t", $fields) . "\r\n";
         }
 
-        // اسم الملف الذي سيظهر عند التحميل
-        $fileName = "Ameen_Invoice_" . $order->id . ".txt";
+        $fileName = "Ameen_Items_" . $order->id . ".txt";
 
-        // إرجاع الملف كاستجابة تحميل مباشرة للمتصفح
         return response($content)
             ->withHeaders([
-                'Content-Type' => 'text/plain',
+                'Content-Type' => 'text/plain; charset=utf-8',
                 'Content-Disposition' => "attachment; filename={$fileName}",
             ]);
     }
