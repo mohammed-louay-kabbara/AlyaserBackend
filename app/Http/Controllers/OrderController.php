@@ -218,56 +218,29 @@ public function sendToWarehouse($id)
     return back()->with('success', 'تم توجيه الطلب للمستودع وسيتم مزامنته قريباً.');
 }
 public function exportOrderToAmeenTxt($id)
-    {
-        $order = Order::with('items.product')->findOrFail($id);
+{
+    $order = Order::with('items.product')->findOrFail($id);
+    $content = ""; 
 
-        $content = ""; // نبدأ بملف فارغ تماماً بدون V=2.0
+    foreach ($order->items as $item) {
+        // نأخذ الـ GUID فقط بدون I=
+        $guid = strtolower($item->product->ameen_guid); 
+        $qty = number_format($item->quantity, 2, '.', ''); 
+        $price = number_format($item->price, 2, '.', ''); 
+        $unitNumber = "1"; // رقم الوحدة
 
-        foreach ($order->items as $item) {
-            // جلب GUID وتحويله إلى أحرف صغيرة ليطابق تنسيق ملف louay.txt
-            $guid = strtolower($item->product->ameen_guid); 
-            
-            // تنسيق الأرقام بدون فاصلة آلاف لضمان عدم حدوث خطأ في الأعمدة
-            $qty = number_format($item->quantity, 2, '.', ''); 
-            $price = number_format($item->price, 2, '.', ''); 
-
-            // بناء السطر بالاعتماد الدقيق على التبويبات في ملفك المرجعي
-            // ملاحظة: الحقل السابع في ملفك هو '1' (غالباً للعملة أو المستودع)
-            $fields = [
-                "I={$guid}", // 1. المعرف
-                $qty,        // 2. الكمية
-                "1",         // 3. رقم الوحدة
-                $price,      // 4. السعر
-                "0.00",      // 5. حسم %
-                "0.00",      // 6. قيمة الحسم
-                "1",         // 7. العملة (ليرة سورية حسب ملفك)
-                "",          // 8. حقل فارغ
-                "0.00",      // 9.
-                "0.00",      // 10.
-                "0.00",      // 11.
-                "0.00",      // 12.
-                "0.00",      // 13.
-                "0.00",      // 14.
-                "0.00",      // 15.
-                "",          // 16. حقل فارغ
-                "",          // 17. حقل فارغ
-                "01-01-1980", // 18. تاريخ الصلاحية
-                "01-01-1980", // 19. تاريخ الإنتاج
-                "0.00"       // 20.
-            ];
-
-            // دمج الحقول بـ Tab حقيقي
-            $content .= implode("\t", $fields) . "\r\n";
-        }
-
-        $fileName = "Ameen_Items_" . $order->id . ".txt";
-
-        return response($content)
-            ->withHeaders([
-                'Content-Type' => 'text/plain; charset=utf-8',
-                'Content-Disposition' => "attachment; filename={$fileName}",
-            ]);
+        // سنصدر 4 أعمدة فقط يفصل بينها Tab
+        $content .= "{$guid}\t{$qty}\t{$unitNumber}\t{$price}\r\n";
     }
+
+    $fileName = "Ameen_Import_" . $order->id . ".txt";
+
+    return response($content)
+        ->withHeaders([
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'Content-Disposition' => "attachment; filename={$fileName}",
+        ]);
+}
 public function store(Request $request)
 {
     $request->validate([
