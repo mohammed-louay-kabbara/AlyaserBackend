@@ -35,7 +35,6 @@ Route::middleware(['auth:web'])->group(function () {
     
     Route::get('/dashboard_admin', [AdminController::class, 'index'])->name('dashboard_admin');
     // رابط لتجربة تصدير الفاتورة رقم 1 كمثال
-Route::get('/export-invoice/{id}', [YourController::class, 'exportOrderToAmeenTxt']);
     Route::get('users', [AdminController::class, 'get_users'])->name('users');
     Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
     Route::post('add_order', [OrderController::class,'store'])->name('add_order');
@@ -75,6 +74,8 @@ Route::get('/export-invoice/{id}', [YourController::class, 'exportOrderToAmeenTx
 
 // مسارات تجريبية (اختياري وضعها خارج أو داخل الحماية)
 Route::get('/test-invoice', [InvoiceController::class, 'exportTxt']);
+Route::get('/export-invoice/{id}', [OrderController::class, 'exportOrderToAmeenTxt']);
+
 
 
 Route::get('/export-real-invoice', function () {
