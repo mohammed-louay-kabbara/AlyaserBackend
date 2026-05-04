@@ -329,6 +329,7 @@ public function getAdminProducts(Request $request)
     $search = $request->input('search');
     $status = $request->input('stock_status');
     $category = $request->input('category_id');
+    $perPage = $request->input('per_page', 10);
 
     $query = Product::query();
 
@@ -348,7 +349,7 @@ public function getAdminProducts(Request $request)
         $query->where('category_id', $category);
     }
 
-    $products = $query->latest()->paginate(20);
+    $products = $query->latest()->paginate($perPage);
     $categories = category::get();
 
     return response()->json([

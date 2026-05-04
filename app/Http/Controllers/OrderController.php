@@ -217,6 +217,42 @@ public function sendToWarehouse($id)
 
     return back()->with('success', 'تم توجيه الطلب للمستودع وسيتم مزامنته قريباً.');
 }
+public function exportOrderToAmeenTxt($orderId)
+    {
+        // 1. جلب الطلب مع المنتجات المرتبطة به من قاعدة البيانات
+        // افترض أن لديك علاقة orderItems تربط الطلب بالمنتجات
+        $order = Order::with('orderItems.product')->find($orderId);
+
+        if (!$order) {
+            return response()->json(['error' => 'الطلب غير موجود'], 404);
+        }
+
+        // 2. ترويسة الملف (اختياري حسب استجابة الأمين، لكن من الجيد وضع إصدار الملف)
+        $txtContent = "V=2.0\r\n";
+
+        // 3. بناء أسطر المنتجات المباعة (الأقلام)
+        foreach ($order->orderItems as $item) {
+            $guid     = $item->product->ameen_guid; // المعرف الفريد للمنتج
+            $quantity = number_format($item->quantity, 2, '.', ''); // الكمية (مثال: 1.00)
+            $unit     = 1; // رقم الوحدة (1 للقطعة، 2 للطرد حسب نظامكم)
+            $price    = number_format($item->price, 2, '.', ''); // السعر الإفرادي
+
+            // بناء السطر بناءً على النمط الموجود في ملفك (مفصول بـ Tabs)
+            // الحقول الفارغة أو الأصفار تعبر عن الحسميات، الضرائب، المستودع، وتواريخ الصلاحية
+            $line = "I={$guid}\t{$quantity}\t{$unit}\t{$price}\t0.00\t0.00\t1\t\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t\t\t01-01-1980\t01-01-1980\t0.00";
+            
+            $txtContent .= $line . "\r\n";
+        }
+
+        // 4. إنشاء الملف وتحميله (أو حفظه في السيرفر)
+        $fileName = 'invoice_' . $order->id . '.txt';
+        $headers = [
+            'Content-type' => 'text/plain',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
+        ];
+
+        return response($txtContent, 200, $headers);
+    }
 public function store(Request $request)
 {
     $request->validate([
@@ -532,6 +568,7 @@ public function printOrders(Request $request)
 public function getAdminOrders(Request $request)
 {
     $query = Order::with(['user', 'items.product'])->orderBy('created_at', 'desc');
+    $perPage = $request->input('per_page', 10);
 
     if ($request->filled('search')) {
         $query->whereHas('user', function ($q) use ($request) {
@@ -549,7 +586,7 @@ public function getAdminOrders(Request $request)
 
     $warehouses = User::where('role_id', 3)->get();
     $products = Product::select('id', 'name')->get();
-    $orders = $query->paginate(20);
+    $orders = $query->paginate($perPage);
 
     return response()->json([
         'orders' => $orders,

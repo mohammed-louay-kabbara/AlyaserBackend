@@ -73,33 +73,9 @@ use App\Http\Controllers\RoleController;
 
 
 Route::group([
-
-
-
-
-
-
-
     'middleware' => 'api',
-
-
-
     'prefix' => 'auth'
-
-
-
-
-
-
-
 ], function ($router) {
-
-
-
-
-
-
-
 });
 
 
@@ -109,73 +85,22 @@ Route::group([
 
 
 Route::post('logout', [AuthController::class,'logout']);
-
-
-
 Route::get('addproduct', [ProductController::class,'addproduct']);
-
-
-
 Route::post('fcm_token', [AuthController::class,'fcm_token']);
-
-
-
 Route::post('sendPushNotification', [NotificationController::class,'sendPushNotification']);
-
-
-
 Route::get('read_all', [NotificationController::class,'read_all']);
-
-
-
 Route::get('my_Notification',[NotificationController::class,'my_Notification']);
-
-
-
 Route::get('category_search/{id}',[ProductController::class,'category_search']);
-
-
-
 Route::get('getSearchScreenData',[ProductController::class,'getSearchScreenData']);
-
-
-
 Route::put('/orders/{orderId}/update', [OrderController::class, 'updateOrder']);
-
-
-
 Route::post('refresh', [AuthController::class,'refresh']);
-
-
-
 Route::get('me', [AuthController::class,'me']);
-
-
-
 Route::post('login', [AuthController::class,'login']);
-
-
-
 Route::post('register', [AuthController::class,'register']);
-
-
-
 Route::post('admin_role', [AuthController::class,'admin']);
-
-
-
 Route::resource('Product',ProductController::class);
-
-
-
 Route::get('Product-search',[ProductController::class,'search']);
-
-
-
 Route::resource('Category',CategoryController::class);
-
-
-
 Route::resource('offers', OfferController::class);
 
 
