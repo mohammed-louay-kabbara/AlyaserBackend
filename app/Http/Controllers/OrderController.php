@@ -221,7 +221,7 @@ public function exportOrderToAmeenTxt($orderId)
     {
         // 1. جلب الطلب مع المنتجات المرتبطة به من قاعدة البيانات
         // افترض أن لديك علاقة orderItems تربط الطلب بالمنتجات
-        $order = Order::with('orderItems.product')->find($orderId);
+        $order = Order::with('items.product')->find($orderId);
 
         if (!$order) {
             return response()->json(['error' => 'الطلب غير موجود'], 404);
@@ -231,7 +231,7 @@ public function exportOrderToAmeenTxt($orderId)
         $txtContent = "V=2.0\r\n";
 
         // 3. بناء أسطر المنتجات المباعة (الأقلام)
-        foreach ($order->orderItems as $item) {
+        foreach ($order->items as $item) {
             $guid     = $item->product->ameen_guid; // المعرف الفريد للمنتج
             $quantity = number_format($item->quantity, 2, '.', ''); // الكمية (مثال: 1.00)
             $unit     = 1; // رقم الوحدة (1 للقطعة، 2 للطرد حسب نظامكم)
