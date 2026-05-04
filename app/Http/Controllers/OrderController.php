@@ -260,6 +260,7 @@ public function store(Request $request)
             'total_amount' => 0, 
             'status'       => 'pending',
             'notes'        => $request->notes,
+            'delivery_type' => $request->delivery_type
         ]);
 
         foreach ($request->items as $item) {
@@ -446,6 +447,7 @@ public function updateOrder(Request $request, $orderId)
         $order->update([
             'total_amount' => $totalAmount,
             'notes'        => $request->notes ?? $order->notes,
+            'delivery_type' => $request->delivery_type,
             'is_synced'    => false,
         ]);
 
