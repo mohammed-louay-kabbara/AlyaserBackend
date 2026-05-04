@@ -217,41 +217,33 @@ public function sendToWarehouse($id)
 
     return back()->with('success', 'تم توجيه الطلب للمستودع وسيتم مزامنته قريباً.');
 }
-public function exportOrderToAmeenTxt($orderId)
+public function exportOrderToAmeenTxt($id)
     {
-        // 1. جلب الطلب مع المنتجات المرتبطة به من قاعدة البيانات
-        // افترض أن لديك علاقة orderItems تربط الطلب بالمنتجات
-        $order = Order::with('items.product')->find($orderId);
+        // جلب بيانات الفاتورة من قاعدة بيانات التطبيق (Laravel)
+        $order = Order::with('items.product')->findOrFail($id);
 
-        if (!$order) {
-            return response()->json(['error' => 'الطلب غير موجود'], 404);
-        }
+        // بداية محتوى الملف بناءً على عينة louay.txt
+        $content = "V=2.0\r\n"; // إصدار التصدير[cite: 1]
 
-        // 2. ترويسة الملف (اختياري حسب استجابة الأمين، لكن من الجيد وضع إصدار الملف)
-        $txtContent = "V=2.0\r\n";
-
-        // 3. بناء أسطر المنتجات المباعة (الأقلام)
         foreach ($order->items as $item) {
-            $guid     = $item->product->ameen_guid; // المعرف الفريد للمنتج
-            $quantity = number_format($item->quantity, 2, '.', ''); // الكمية (مثال: 1.00)
-            $unit     = 1; // رقم الوحدة (1 للقطعة، 2 للطرد حسب نظامكم)
-            $price    = number_format($item->price, 2, '.', ''); // السعر الإفرادي
+            $guid = $item->product->ameen_guid; // المعرف من جدول المنتجات
+            $qty = number_format($item->quantity, 2, '.', ''); // الكمية
+            $price = number_format($item->price, 2, '.', ''); // السعر
 
-            // بناء السطر بناءً على النمط الموجود في ملفك (مفصول بـ Tabs)
-            // الحقول الفارغة أو الأصفار تعبر عن الحسميات، الضرائب، المستودع، وتواريخ الصلاحية
-            $line = "I={$guid}\t{$quantity}\t{$unit}\t{$price}\t0.00\t0.00\t1\t\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t\t\t01-01-1980\t01-01-1980\t0.00";
-            
-            $txtContent .= $line . "\r\n";
+            // بناء سطر المادة (I) بناءً على الترتيب في ملفك المرجعي[cite: 1]
+            // الحقول مفصولة بـ Tab (\t)
+            $content .= "I={$guid}\t{$qty}\t1\t{$price}\t0.00\t0.00\t1\t\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t\t\t01-01-1980\t01-01-1980\t0.00\r\n";
         }
 
-        // 4. إنشاء الملف وتحميله (أو حفظه في السيرفر)
-        $fileName = 'invoice_' . $order->id . '.txt';
-        $headers = [
-            'Content-type' => 'text/plain',
-            'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
-        ];
+        // اسم الملف الذي سيظهر عند التحميل
+        $fileName = "Ameen_Invoice_" . $order->id . ".txt";
 
-        return response($txtContent, 200, $headers);
+        // إرجاع الملف كاستجابة تحميل مباشرة للمتصفح
+        return response($content)
+            ->withHeaders([
+                'Content-Type' => 'text/plain',
+                'Content-Disposition' => "attachment; filename={$fileName}",
+            ]);
     }
 public function store(Request $request)
 {
