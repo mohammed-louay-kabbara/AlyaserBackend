@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\FcmService;
 use App\Models\Offer;
+use Illuminate\Support\Facades\Validator; // تأكد من وجود هذا السطر في أعلى الملف
 use Mpdf\Mpdf;
 
 class OrderController extends Controller
@@ -243,20 +244,21 @@ public function exportOrderToAmeenTxt($id)
 }
 public function store(Request $request)
 {
-    $request->validate([
-        'items' => 'required|array|min:1',
-        'items.*.quantity'      => 'required|numeric|min:0.1',
-        'items.*.purchase_type' => 'required',
-        'items.*.product_id'    => 'nullable|exists:products,id',
-        'items.*.offer_id'      => 'nullable|exists:offers,id',
+    $validator = Validator::make($request->all(), [
+            'items' => 'required|array|min:1',
+            'items.*.quantity'      => 'required|numeric|min:0.1',
+            'items.*.purchase_type' => 'required',
+            'items.*.product_id'    => 'nullable|exists:products,id',
+            'items.*.offer_id'      => 'nullable|exists:offers,id',
     ]);
-    if ($request->validator->fails()) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'خطأ في البيانات المدخلة',
-            'errors'  => $request->validator->errors() // سيعيد قائمة بكل الحقول المخطئة
-        ], 422);
-    }
+        // 2. الآن نستخدم المتغير $validator الذي عرفناه للتو (وليس $request->validator)
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'خطأ في البيانات المدخلة',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
 
     try {
         DB::beginTransaction();
