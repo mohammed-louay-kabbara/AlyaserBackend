@@ -247,19 +247,44 @@ public function store(Request $request)
         'items' => 'required|array|min:1',
         'items.*.quantity'      => 'required|numeric|min:0.1',
         'items.*.purchase_type' => 'required',
-        // التحقق من وجود أحدهما لكل عنصر في المصفوفة
         'items.*.product_id'    => 'nullable|exists:products,id',
         'items.*.offer_id'      => 'nullable|exists:offers,id',
     ]);
+
     try {
         DB::beginTransaction();
-        
+
+        // 1. تجهيز أجزاء المعرف الخاص بالطلب
+        $now = now();
+        $year = $now->format('Y');  // 2026
+        $month = $now->format('m'); // 04
+        $userId = Auth::id();
+
+        // 2. حساب رقم الطلب التسلسلي لهذا العميل خلال هذا الشهر
+        $orderCount = Order::where('user_id', $userId)
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->count() + 1;
+
+        // 3. تنسيق المعرف AY-Year-Month-CustomerId-OrderNo
+        // sprintf تستخدم لإضافة أصفار على اليسار (Padding)
+        // %05d تعني رقم من 5 خانات، و %03d تعني رقم من 3 خانات
+        $customOrderId = sprintf('AY-%s-%s-%05d-%03d', 
+            $year, 
+            $month, 
+            $userId, 
+            $orderCount
+        );
+
         $totalAmount = 0;
+
+        // 4. إنشاء الطلب مع المعرف الجديد
         $order = Order::create([
-            'user_id'      => Auth::id(), 
-            'total_amount' => 0, 
-            'status'       => 'pending',
-            'notes'        => $request->notes,
+            'order_number'  => $customOrderId, // المعرف الجديد
+            'user_id'       => $userId, 
+            'total_amount'  => 0, 
+            'status'        => 'pending',
+            'notes'         => $request->notes,
             'delivery_type' => $request->delivery_type
         ]);
 
@@ -267,18 +292,18 @@ public function store(Request $request)
             $unitPrice = 0;
 
             if (!empty($item['product_id'])) {
-                // منطق المنتج
                 $product = Product::find($item['product_id']);
                 $unitPrice = ($item['purchase_type'] == 'طرد') 
                              ? $product->wholesale_price 
                              : $product->retail_price;
             } elseif (!empty($item['offer_id'])) {
-                // منطق العرض
                 $offer = Offer::find($item['offer_id']);
                 $unitPrice = $offer->price;
             }
+
             $subTotal = $unitPrice * $item['quantity'];
             $totalAmount += $subTotal;
+
             OrderItem::create([
                 'order_id'      => $order->id,
                 'product_id'    => $item['product_id'] ?? null,
@@ -292,13 +317,14 @@ public function store(Request $request)
 
         $order->update(['total_amount' => $totalAmount]);
         
-        // مسح السلة للمستخدم
+        // مسح السلة
         cart_item::where('user_id', Auth::id())->delete();
 
         DB::commit();
         
         return response()->json([
             'message' => 'تم إنشاء الطلب بنجاح',
+            'order_number' => $customOrderId,
             'order'   => $order->load('items.product', 'items.offer')
         ], 201);
 

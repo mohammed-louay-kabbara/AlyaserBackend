@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
     {
         protected $fillable = [
             'user_id', 'total_amount', 
-            'status', 'notes', 'ameen_guid', 'is_synced','problem'
+            'status', 'notes', 'ameen_guid', 'is_synced','problem','order_number'
         ];
 
     public function items()
