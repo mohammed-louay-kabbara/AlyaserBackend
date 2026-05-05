@@ -250,6 +250,13 @@ public function store(Request $request)
         'items.*.product_id'    => 'nullable|exists:products,id',
         'items.*.offer_id'      => 'nullable|exists:offers,id',
     ]);
+    if ($request->validator->fails()) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'خطأ في البيانات المدخلة',
+            'errors'  => $request->validator->errors() // سيعيد قائمة بكل الحقول المخطئة
+        ], 422);
+    }
 
     try {
         DB::beginTransaction();

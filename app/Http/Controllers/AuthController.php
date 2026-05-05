@@ -146,6 +146,7 @@ public function login_admin(Request $request)
             'shop_name' => 'sometimes|required|string',
             'address'   => 'sometimes|required|string',
         ]);
+        
 
         if ($request->filled('new_password')) {
             if (!Hash::check($request->old_password, $user->password)) {
