@@ -11,10 +11,8 @@ class StaffController extends Controller
 {
     public function getAdminStaff(Request $request)
     {
-        $query = User::where('role_id', '!=', 1)->with(['orders' => function($query) {
-            $query->select('id', 'user_id', 'total_amount', 'status');
-        }]);
-        
+        $query = User::where('role_id', '!=', 2);
+
         $search = $request->input('search');
         $status = $request->input('status');
         $perPage = $request->input('per_page', 10);
