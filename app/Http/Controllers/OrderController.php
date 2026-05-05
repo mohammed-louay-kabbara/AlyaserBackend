@@ -608,6 +608,9 @@ public function getAdminOrders(Request $request)
     if ($request->filled('status')) {
         $query->where('status', $request->status);
     }
+    if ($request->filled('area')) {
+        $query->where('user.zone', $request->area);
+    }
 
     $warehouses = User::where('role_id', 3)->get();
     $products = Product::select('id', 'name')->get();

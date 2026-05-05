@@ -58,6 +58,8 @@ use App\Http\Controllers\warehousecontroller;
 
 use App\Http\Controllers\RoleController;
 
+use App\Http\Controllers\StaffController;
+
 
 
 
@@ -188,6 +190,30 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/admin/users/{id}/reset-password', [AdminController::class, 'resetPassword']);
 
     Route::put('/admin/users/{id}/role', [AdminController::class, 'updateUserRole']);
+
+
+
+    // Staff Management
+
+
+
+    Route::get('/admin/staff', [StaffController::class, 'getAdminStaff']);
+
+
+
+    Route::post('/admin/staff', [StaffController::class, 'createStaff']);
+
+
+
+    Route::put('/admin/staff/{id}', [StaffController::class, 'updateStaff']);
+
+
+
+    Route::delete('/admin/staff/{id}', [StaffController::class, 'deleteStaff']);
+
+
+
+    Route::get('/admin/staff/{id}', [StaffController::class, 'getStaffDetail']);
 
 
 
