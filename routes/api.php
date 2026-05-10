@@ -409,6 +409,7 @@ Route::middleware(['auth:api'])->group(function () {
 Route::post('/admin/roles', [RoleController::class, 'store'])->middleware('permission:manage_roles');
 Route::post('/delete_all', [ProductController::class, 'delete_all']);
 Route::get('/exportOrderToAmeenTxt/{id}', [OrderController::class, 'exportOrderToAmeenTxt']);
+Route::post('/exportMultipleOrdersToAmeenTxt', [OrderController::class, 'exportMultipleOrdersToAmeenTxt']);
 
 
 
