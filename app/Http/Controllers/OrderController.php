@@ -466,7 +466,7 @@ public function store(Request $request)
         return response()->json($orders, 200);
     }
     public function Order_details($id){
-        $order = Order::where('id', $id)->with(['items.product','items.offer'])->with('items')->get();
+        $order = Order::where('id', $id)->with(['user','items.product','items.offer'])->with('items')->get();
         return response()->json($order, 200);
     }
 public function updateOrder(Request $request, $orderId)
