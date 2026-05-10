@@ -310,6 +310,9 @@ Route::middleware(['auth:api'])->group(function () {
 
 
     Route::get('/admin/categories', [CategoryController::class, 'getAdminCategories']);
+    Route::post('/admin/categories', [CategoryController::class, 'store']);
+    Route::post('/admin/categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('/admin/categories/{id}', [CategoryController::class, 'destroy']);
     Route::post('/admin/categories/{id}/products', [CategoryController::class, 'assignProducts']);
 
 
