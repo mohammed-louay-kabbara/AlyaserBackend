@@ -241,7 +241,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
+    Route::post('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
     Route::post('/warehouse/orders/{id}/ready', [warehousecontroller::class, 'markAsReady'])->name('warehouse.markAsReady');
 
 
