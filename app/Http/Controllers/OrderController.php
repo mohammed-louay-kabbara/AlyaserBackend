@@ -218,27 +218,75 @@ public function sendToWarehouse($id)
 
     return back()->with('success', 'تم توجيه الطلب للمستودع وسيتم مزامنته قريباً.');
 }
+// public function exportOrderToAmeenTxt($id)
+// {
+//     $order = Order::with('items.product')->findOrFail($id);
+//     $content = ""; 
+
+//     foreach ($order->items as $item) {
+//         // نأخذ الـ GUID فقط بدون I=
+//         $guid = strtolower($item->product->ameen_guid); 
+//         $qty = number_format($item->quantity, 2, '.', ''); 
+//         $price = number_format($item->price, 2, '.', ''); 
+//         $unitNumber = "1"; // رقم الوحدة
+
+//         // سنصدر 4 أعمدة فقط يفصل بينها Tab
+//         $content .= "{$guid}\t{$qty}\t{$unitNumber}\t{$price}\r\n";
+//     }
+
+//     $fileName = "Ameen_Import_" . $order->id . ".txt";
+
+//     return response($content)
+//         ->withHeaders([
+//             'Content-Type' => 'text/plain; charset=utf-8',
+//             'Content-Disposition' => "attachment; filename={$fileName}",
+//         ]);
+// }
+
 public function exportOrderToAmeenTxt($id)
 {
     $order = Order::with('items.product')->findOrFail($id);
-    $content = ""; 
+    $lines = [];
 
     foreach ($order->items as $item) {
-        // نأخذ الـ GUID فقط بدون I=
-        $guid = strtolower($item->product->ameen_guid); 
-        $qty = number_format($item->quantity, 2, '.', ''); 
-        $price = number_format($item->price, 2, '.', ''); 
-        $unitNumber = "1"; // رقم الوحدة
+        $product = $item->product;
 
-        // سنصدر 4 أعمدة فقط يفصل بينها Tab
-        $content .= "{$guid}\t{$qty}\t{$unitNumber}\t{$price}\r\n";
+        // ── حراسة البيانات ──────────────────────────────────────
+        if (blank($product->ameen_guid)) {
+            \Log::warning("Product ID {$product->id} has no ameen_guid — skipped");
+            continue;
+        }
+
+        // الأولوية: كود Ameen الرقمي، ثم GUID كاحتياط
+        $code = $product->ameen_code ?? strtoupper($product->ameen_guid);
+
+        // السعر: من سطر الطلب أولاً، ثم retail_price كاحتياط، ثم 1 لتجنب الرفض
+        $price = $item->price 
+              ?? $product->retail_price 
+              ?? 0;
+
+        if ($price <= 0) {
+            \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
+        }
+
+        $qty      = number_format($item->quantity, 2, '.', '');
+        $priceStr = number_format($price,          2, '.', '');
+
+        $lines[] = "{$code}\t{$qty}\t{$priceStr}";
     }
 
-    $fileName = "Ameen_Import_" . $order->id . ".txt";
+    if (empty($lines)) {
+        return response()->json([
+            'error' => 'لا توجد منتجات صالحة للتصدير. تأكد من وجود ameen_guid وسعر لكل منتج.'
+        ], 422);
+    }
+
+    $content  = implode("\r\n", $lines) . "\r\n";
+    $fileName = "Ameen_Import_Order_{$order->id}.txt";
 
     return response($content)
         ->withHeaders([
-            'Content-Type' => 'text/plain; charset=utf-8',
+            'Content-Type'        => 'text/plain; charset=utf-8',
             'Content-Disposition' => "attachment; filename={$fileName}",
         ]);
 }
@@ -609,17 +657,27 @@ public function getAdminOrders(Request $request)
         $query->where('status', $request->status);
     }
     if ($request->filled('area')) {
-        $query->where('user.zone', $request->area);
+        $query->whereHas('user', function ($q) use ($request) {
+            $q->where('zone', $request->area);
+        });
+    }
+
+    // Force delivery_type = 'delivery' for warehouse_manager
+    $user = auth()->user();
+    if ($user && $user->role && $user->role->name_en === 'warehouse_manager') {
+        $query->where('delivery_type', 'delivery');
+    } else {
+        if ($request->filled('delivery_type')) {
+            $query->where('delivery_type', $request->delivery_type);
+        }
     }
 
     $warehouses = User::where('role_id', 3)->get();
-    $products = Product::select('id', 'name')->get();
     $orders = $query->paginate($perPage);
 
     return response()->json([
         'orders' => $orders,
-        'warehouses' => $warehouses,
-        'products' => $products
+        'warehouses' => $warehouses
     ]);
 }
 

@@ -202,12 +202,28 @@ public function login_admin(Request $request)
 
     protected function respondWithToken($token)
     {
+        $user = auth()->user()->load(['role', 'role.permissions']);
+        
         return response()->json([
             'status' => true,
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60,
-            'user' => auth()->user()
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'zone' => $user->zone,
+                'shop_name' => $user->shop_name,
+                'address' => $user->address,
+                'activated' => $user->activated,
+                'role' => $user->role ? [
+                    'id' => $user->role->id,
+                    'name_en' => $user->role->name_en,
+                    'name_ar' => $user->role->name_ar,
+                ] : null,
+                'permissions' => $user->role ? $user->role->permissions->pluck('name')->toArray() : []
+            ]
         ]);
     }
 }

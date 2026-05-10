@@ -38,7 +38,14 @@ class OfferController extends Controller
 
     public function getAdminOffers(Request $request)
     {
-        $offers = Offer::with('products')->get();
+        $query = Offer::with('products');
+        
+        $search = $request->input('search');
+        if ($search) {
+            $query->where('description', 'LIKE', "%{$search}%");
+        }
+        
+        $offers = $query->get();
         $products = Product::all();
         return response()->json([
             'offers' => $offers,
@@ -53,6 +60,7 @@ public function store(Request $request)
         'expires_at'  => 'required',
         'price'       => 'required|numeric|min:0', // سعر العرض الكلي
         'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        'products'    => 'required|string'
     ]);
 
     try {
@@ -69,11 +77,16 @@ public function store(Request $request)
             'image'       => $path,
         ]);
 
-        // 4. ربط المنتجات بالعرض في الجدول الوسيط (Pivot Table)
-        foreach ($request->products as $item) {
-            $offer->products()->attach($item['product_id'], [
-                'quantity' => $item['quantity']
-            ]);
+        // 4. فك ترميز المنتجات من JSON
+        $products = json_decode($request->products, true);
+
+        // 5. ربط المنتجات بالعرض في الجدول الوسيط (Pivot Table)
+        if (is_array($products)) {
+            foreach ($products as $item) {
+                $offer->products()->attach($item['product_id'], [
+                    'quantity' => $item['quantity']
+                ]);
+            }
         }
 
         DB::commit();
@@ -81,7 +94,7 @@ public function store(Request $request)
 
     } catch (\Exception $e) {
         DB::rollBack();
-        return response()->json(['message' => $e], 500);
+        return response()->json(['message' => $e->getMessage()], 500);
     }
 }
 
@@ -104,7 +117,8 @@ public function store(Request $request)
             'description' => 'sometimes|string',
             'expires_at'  => 'sometimes|date',
             'price'       => 'sometimes|numeric|min:0',
-            'image'       => 'sometimes|image|mimes:jpeg,png,jpg|max:2048'
+            'image'       => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+            'products'    => 'sometimes|string'
         ]);
 
         try {
@@ -156,9 +170,17 @@ public function store(Request $request)
     {
         $offer = Offer::find($id);
         if (!$offer) return response()->json(['message' => 'العرض غير موجود'], 404);
-        // حذف ملف الصورة من التخزين
-        Storage::disk('public')->delete($offer->image);
-        $offer->delete();
-        return back();
+        
+        try {
+            // حذف ملف الصورة من التخزين
+            Storage::disk('public')->delete($offer->image);
+            
+            // حذف العرض
+            $offer->delete();
+            
+            return response()->json(['message' => 'تم حذف العرض بنجاح'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'فشل في حذف العرض: ' . $e->getMessage()], 500);
+        }
     }
 }

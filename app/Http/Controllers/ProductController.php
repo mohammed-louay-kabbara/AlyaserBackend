@@ -26,72 +26,134 @@ class ProductController extends Controller
         ]);
         return response()->json('تم الحفظ بنجاح', 200);
     }
-public function syncWithAmeen(Request $request)
-    {
-        try {
-            set_time_limit(0);
+// public function syncWithAmeen(Request $request)
+//     {
+//         try {
+//             set_time_limit(0);
             
-            $ameenProducts = DB::connection('ameen')
-                ->table('mt000')
-                ->select(
-                    'GUID', 
-                    'Name', 
-                    'Unity',      // الوحدة 1
-                    'Unit2',      // الوحدة 2
-                    'Unit2Fact',  // عامل التحويل
-                    'Qty',
-                    'LastPrice',   // السعر الحقيقي للوحدة 1 (كما أكدت)
-                    'LastPrice2'   // السعر الحقيقي للوحدة 2 (كما أكدت)
-                )
-                ->where('bHide', 0)
-                ->get();
+//             $ameenProducts = DB::connection('ameen')
+//                 ->table('mt000')
+//                 ->select(
+//                     'GUID', 
+//                     'Name', 
+//                     'Unity',      // الوحدة 1
+//                     'Unit2',      // الوحدة 2
+//                     'Unit2Fact',  // عامل التحويل
+//                     'Qty',
+//                     'LastPrice',   // السعر الحقيقي للوحدة 1 (كما أكدت)
+//                     'LastPrice2'   // السعر الحقيقي للوحدة 2 (كما أكدت)
+//                 )
+//                 ->where('bHide', 0)
+//                 ->get();
 
-            $updated = 0;
-            $created = 0;
+//             $updated = 0;
+//             $created = 0;
 
-            foreach ($ameenProducts as $product) {
+//             foreach ($ameenProducts as $product) {
                 
-                // 1. تحديد سعر الوحدة الأولى (المفرق) من الحقل الصحيح
-                $finalPrice = $product->LastPrice ?? 0;
+//                 // 1. تحديد سعر الوحدة الأولى (المفرق) من الحقل الصحيح
+//                 $finalPrice = $product->LastPrice ?? 0;
 
-                // 2. إذا كان المنتج يباع بالوحدة الثانية (الطرد) حصراً أو كان سعر الأولى 0
-                // يمكننا حساب سعر القطعة الواحدة من سعر الطرد لضمان الدقة
-                if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
-                    $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
-                }
+//                 // 2. إذا كان المنتج يباع بالوحدة الثانية (الطرد) حصراً أو كان سعر الأولى 0
+//                 // يمكننا حساب سعر القطعة الواحدة من سعر الطرد لضمان الدقة
+//                 if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
+//                     $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
+//                 }
 
-                // 3. تحديد سعر الجملة من LastPrice2
-                $wholesalePrice = $product->LastPrice2 ?? 0;
+//                 // 3. تحديد سعر الجملة من LastPrice2
+//                 $wholesalePrice = $product->LastPrice2 ?? 0;
                 
-                // إذا كان سعر الجملة 0 وسعر المفرق موجود، يمكن استخدام سعر المفرق كقيمة افتراضية
-                if ($wholesalePrice == 0 && $finalPrice > 0) {
-                    $wholesalePrice = $finalPrice;
-                }
+//                 // إذا كان سعر الجملة 0 وسعر المفرق موجود، يمكن استخدام سعر المفرق كقيمة افتراضية
+//                 if ($wholesalePrice == 0 && $finalPrice > 0) {
+//                     $wholesalePrice = $finalPrice;
+//                 }
 
-                // 4. تحديث أو إنشاء في قاعدة البيانات
-                $sync = Product::updateOrCreate(
-                    ['ameen_guid' => $product->GUID], // البحث عن المنتج عبر GUID
-                    [
-                        'name'           => $product->Name,
-                        'retail_price'   => $finalPrice, // السعر من LastPrice
-                        'wholesale_price'=> $wholesalePrice, // السعر من LastPrice2
-                        'quantity'       => $product->Qty ?? 0,
-                    ]
-                );
+//                 // 4. تحديث أو إنشاء في قاعدة البيانات
+//                 $sync = Product::updateOrCreate(
+//                     ['ameen_guid' => $product->GUID], // البحث عن المنتج عبر GUID
+//                     [
+//                         'name'           => $product->Name,
+//                         'retail_price'   => $finalPrice, // السعر من LastPrice
+//                         'wholesale_price'=> $wholesalePrice, // السعر من LastPrice2
+//                         'quantity'       => $product->Qty ?? 0,
+//                     ]
+//                 );
 
-                $sync->wasRecentlyCreated ? $created++ : $updated++;
+//                 $sync->wasRecentlyCreated ? $created++ : $updated++;
+//             }
+
+//             return response()->json([
+//                 'status'  => 'success',
+//                 'message' => "تمت المزامنة بنجاح باستخدام حقول LastPrice",
+//                 'counts'  => ['new' => $created, 'updated' => $updated]
+//             ]);
+
+//         } catch (\Exception $e) {
+//             return response()->json(['error' => $e->getMessage()], 500);
+//         }
+//     }
+public function syncWithAmeen(Request $request)
+{
+    try {
+        set_time_limit(0);
+        
+        $ameenProducts = DB::connection('ameen')
+            ->table('mt000')
+            ->select(
+                'GUID', 
+                'Code',       // ← أضف هذا
+                'Name', 
+                'Unity',
+                'Unit2',
+                'Unit2Fact',
+                'Qty',
+                'LastPrice',
+                'LastPrice2'
+            )
+            ->where('bHide', 0)
+            ->get();
+
+        $updated = 0;
+        $created = 0;
+
+        foreach ($ameenProducts as $product) {
+            
+            $finalPrice = $product->LastPrice ?? 0;
+
+            if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
+                $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
             }
 
-            return response()->json([
-                'status'  => 'success',
-                'message' => "تمت المزامنة بنجاح باستخدام حقول LastPrice",
-                'counts'  => ['new' => $created, 'updated' => $updated]
-            ]);
+            $wholesalePrice = $product->LastPrice2 ?? 0;
+            
+            if ($wholesalePrice == 0 && $finalPrice > 0) {
+                $wholesalePrice = $finalPrice;
+            }
 
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            $sync = Product::updateOrCreate(
+                ['ameen_guid' => $product->GUID],
+                [
+                    'ameen_code'      => $product->Code,   // ← أضف هذا فقط
+                    'name'            => $product->Name,
+                    'retail_price'    => $finalPrice,
+                    'wholesale_price' => $wholesalePrice,
+                    'quantity'        => $product->Qty ?? 0,
+                ]
+            );
+
+            $sync->wasRecentlyCreated ? $created++ : $updated++;
         }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "تمت المزامنة بنجاح باستخدام حقول LastPrice",
+            'counts'  => ['new' => $created, 'updated' => $updated]
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
     public function debugAmeenPrice()
     {
         // ضع هنا اسم منتج أو جزء من اسمه أنت متأكد من سعره في الأمين
@@ -299,29 +361,66 @@ public function syncWithAmeen(Request $request)
         'message' => 'تم الحذف بنجاح'
     ], 200);
 }
-public function exportExcel() 
+public function exportExcel(Request $request)
 {
-    return Excel::download(new ProductsExport, 'products_list.xlsx');
+    $ids = $request->input('ids');
+    $query = Product::with('category');
+
+    if ($ids && is_array($ids) && count($ids) > 0) {
+        $query->whereIn('id', $ids);
+    }
+
+    $products = $query->get();
+
+    return Excel::download(new ProductsExport($products), 'products_list.xlsx');
 }
 
-public function exportPdf()
+public function exportPdf(Request $request)
 {
-    $products = Product::with('category')->get();
+    $ids = $request->input('ids');
+    $query = Product::with('category');
+
+    if ($ids && is_array($ids) && count($ids) > 0) {
+        $query->whereIn('id', $ids);
+    }
+
+    $products = $query->get();
+
+    if ($products->isEmpty()) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'لا توجد منتجات للتصدير'
+        ], 400);
+    }
 
     $html = view('reports.products_pdf', compact('products'))->render();
 
-    $mpdf = new Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4',
-        'default_font' => 'cairo',
-        'directionality' => 'rtl'
-    ]);
+    try {
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font' => 'helvetica',
+            'directionality' => 'rtl',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'tempDir' => storage_path('temp')
+        ]);
 
-    $mpdf->WriteHTML($html);
+        $mpdf->WriteHTML($html);
+        $pdfContent = $mpdf->Output('products.pdf', 'S');
 
-    return response($mpdf->Output('products.pdf', 'S'))
-        ->header('Content-Type', 'application/pdf')
-        ->header('Content-Disposition', 'attachment; filename="products.pdf"');
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="products.pdf"')
+            ->header('Content-Length', strlen($pdfContent));
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'فشل في إنشاء ملف PDF: ' . $e->getMessage()
+        ], 500);
+    }
 }
 
 public function getAdminProducts(Request $request)

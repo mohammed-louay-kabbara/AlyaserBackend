@@ -56,6 +56,18 @@ class PermissionsSeeder extends Seeder
             'category' => 'users'
         ]);
 
+        Permission::firstOrCreate(['name' => 'manage_users'], [
+            'label_ar' => 'إدارة المستخدمين',
+            'label_en' => 'Manage Users',
+            'category' => 'users'
+        ]);
+
+        Permission::firstOrCreate(['name' => 'manage_roles'], [
+            'label_ar' => 'إدارة الأدوار',
+            'label_en' => 'Manage Roles',
+            'category' => 'users'
+        ]);
+
         // Products permissions
         Permission::firstOrCreate(['name' => 'view_products'], [
             'label_ar' => 'عرض المنتجات',
@@ -78,6 +90,18 @@ class PermissionsSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'delete_products'], [
             'label_ar' => 'حذف المنتجات',
             'label_en' => 'Delete Products',
+            'category' => 'products'
+        ]);
+
+        Permission::firstOrCreate(['name' => 'manage_products'], [
+            'label_ar' => 'إدارة المنتجات',
+            'label_en' => 'Manage Products',
+            'category' => 'products'
+        ]);
+
+        Permission::firstOrCreate(['name' => 'export_products'], [
+            'label_ar' => 'تصدير المنتجات',
+            'label_en' => 'Export Products',
             'category' => 'products'
         ]);
 
@@ -168,6 +192,12 @@ class PermissionsSeeder extends Seeder
             'category' => 'orders'
         ]);
 
+        Permission::firstOrCreate(['name' => 'print_orders'], [
+            'label_ar' => 'طباعة الطلبات',
+            'label_en' => 'Print Orders',
+            'category' => 'orders'
+        ]);
+
         // Warehouses permissions
         Permission::firstOrCreate(['name' => 'view_warehouses'], [
             'label_ar' => 'عرض المستودعات',
@@ -210,6 +240,31 @@ class PermissionsSeeder extends Seeder
             'label_ar' => 'إرسال إشعارات',
             'label_en' => 'Send Notifications',
             'category' => 'notifications'
+        ]);
+
+        // Staff permissions
+        Permission::firstOrCreate(['name' => 'view_staff'], [
+            'label_ar' => 'عرض الموظفين',
+            'label_en' => 'View Staff',
+            'category' => 'staff'
+        ]);
+
+        Permission::firstOrCreate(['name' => 'create_staff'], [
+            'label_ar' => 'إنشاء موظفين',
+            'label_en' => 'Create Staff',
+            'category' => 'staff'
+        ]);
+
+        Permission::firstOrCreate(['name' => 'manage_staff'], [
+            'label_ar' => 'إدارة الموظفين',
+            'label_en' => 'Manage Staff',
+            'category' => 'staff'
+        ]);
+
+        Permission::firstOrCreate(['name' => 'delete_staff'], [
+            'label_ar' => 'حذف الموظفين',
+            'label_en' => 'Delete Staff',
+            'category' => 'staff'
         ]);
 
         // Exchange Rates permissions

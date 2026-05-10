@@ -166,7 +166,7 @@ public function dashboardStats()
 
 public function getUsers(Request $request)
 {
-    $query = User::query();
+    $query = User::with('role');
 
     if ($request->filled('search')) {
         $query->where('name', 'like', '%' . $request->search . '%');
@@ -176,9 +176,16 @@ public function getUsers(Request $request)
         $query->where('activated', $request->activated);
     }
 
+    if ($request->has('status') && $request->status === 'pending') {
+        $query->where('activated', 0);
+    }
+
     $users = $query->latest()->get();
 
-    return response()->json($users);
+    return response()->json([
+        'status' => true,
+        'data' => $users
+    ]);
 }
 
 public function resetPassword(Request $request, $id)

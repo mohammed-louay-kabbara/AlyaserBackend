@@ -195,20 +195,48 @@ class RoleController extends Controller
             // Create default permissions
             $permissions = [
                 ['name' => 'view_dashboard', 'label_ar' => 'عرض لوحة التحكم', 'label_en' => 'View Dashboard', 'category' => 'dashboard'],
-                ['name' => 'manage_users', 'label_ar' => 'إدارة المستخدمين', 'label_en' => 'Manage Users', 'category' => 'users'],
+                ['name' => 'view_analytics', 'label_ar' => 'عرض التحليلات', 'label_en' => 'View Analytics', 'category' => 'dashboard'],
                 ['name' => 'view_users', 'label_ar' => 'عرض المستخدمين', 'label_en' => 'View Users', 'category' => 'users'],
+                ['name' => 'create_users', 'label_ar' => 'إنشاء مستخدمين', 'label_en' => 'Create Users', 'category' => 'users'],
+                ['name' => 'edit_users', 'label_ar' => 'تعديل المستخدمين', 'label_en' => 'Edit Users', 'category' => 'users'],
+                ['name' => 'delete_users', 'label_ar' => 'حذف المستخدمين', 'label_en' => 'Delete Users', 'category' => 'users'],
+                ['name' => 'manage_user_roles', 'label_ar' => 'إدارة أدوار المستخدمين', 'label_en' => 'Manage User Roles', 'category' => 'users'],
+                ['name' => 'manage_users', 'label_ar' => 'إدارة المستخدمين', 'label_en' => 'Manage Users', 'category' => 'users'],
                 ['name' => 'manage_roles', 'label_ar' => 'إدارة الأدوار', 'label_en' => 'Manage Roles', 'category' => 'users'],
-                ['name' => 'manage_products', 'label_ar' => 'إدارة المنتجات', 'label_en' => 'Manage Products', 'category' => 'products'],
                 ['name' => 'view_products', 'label_ar' => 'عرض المنتجات', 'label_en' => 'View Products', 'category' => 'products'],
-                ['name' => 'manage_orders', 'label_ar' => 'إدارة الطلبات', 'label_en' => 'Manage Orders', 'category' => 'orders'],
-                ['name' => 'view_orders', 'label_ar' => 'عرض الطلبات', 'label_en' => 'View Orders', 'category' => 'orders'],
-                ['name' => 'manage_offers', 'label_ar' => 'إدارة العروض', 'label_en' => 'Manage Offers', 'category' => 'offers'],
+                ['name' => 'create_products', 'label_ar' => 'إنشاء منتجات', 'label_en' => 'Create Products', 'category' => 'products'],
+                ['name' => 'edit_products', 'label_ar' => 'تعديل المنتجات', 'label_en' => 'Edit Products', 'category' => 'products'],
+                ['name' => 'delete_products', 'label_ar' => 'حذف المنتجات', 'label_en' => 'Delete Products', 'category' => 'products'],
+                ['name' => 'manage_products', 'label_ar' => 'إدارة المنتجات', 'label_en' => 'Manage Products', 'category' => 'products'],
+                ['name' => 'export_products', 'label_ar' => 'تصدير المنتجات', 'label_en' => 'Export Products', 'category' => 'products'],
+                ['name' => 'view_categories', 'label_ar' => 'عرض الأصناف', 'label_en' => 'View Categories', 'category' => 'categories'],
+                ['name' => 'create_categories', 'label_ar' => 'إنشاء أصناف', 'label_en' => 'Create Categories', 'category' => 'categories'],
+                ['name' => 'edit_categories', 'label_ar' => 'تعديل الأصناف', 'label_en' => 'Edit Categories', 'category' => 'categories'],
+                ['name' => 'delete_categories', 'label_ar' => 'حذف الأصناف', 'label_en' => 'Delete Categories', 'category' => 'categories'],
                 ['name' => 'view_offers', 'label_ar' => 'عرض العروض', 'label_en' => 'View Offers', 'category' => 'offers'],
-                ['name' => 'manage_warehouse', 'label_ar' => 'إدارة المستودع', 'label_en' => 'Manage Warehouse', 'category' => 'warehouse'],
-                ['name' => 'view_warehouse', 'label_ar' => 'عرض المستودع', 'label_en' => 'View Warehouse', 'category' => 'warehouse'],
-                ['name' => 'manage_categories', 'label_ar' => 'إدارة الأصناف', 'label_en' => 'Manage Categories', 'category' => 'products'],
-                ['name' => 'manage_analytics', 'label_ar' => 'إدارة التحليلات', 'label_en' => 'Manage Analytics', 'category' => 'analytics'],
-                ['name' => 'view_analytics', 'label_ar' => 'عرض التحليلات', 'label_en' => 'View Analytics', 'category' => 'analytics'],
+                ['name' => 'create_offers', 'label_ar' => 'إنشاء عروض', 'label_en' => 'Create Offers', 'category' => 'offers'],
+                ['name' => 'edit_offers', 'label_ar' => 'تعديل العروض', 'label_en' => 'Edit Offers', 'category' => 'offers'],
+                ['name' => 'delete_offers', 'label_ar' => 'حذف العروض', 'label_en' => 'Delete Offers', 'category' => 'offers'],
+                ['name' => 'view_orders', 'label_ar' => 'عرض الطلبات', 'label_en' => 'View Orders', 'category' => 'orders'],
+                ['name' => 'create_orders', 'label_ar' => 'إنشاء طلبات', 'label_en' => 'Create Orders', 'category' => 'orders'],
+                ['name' => 'edit_orders', 'label_ar' => 'تعديل الطلبات', 'label_en' => 'Edit Orders', 'category' => 'orders'],
+                ['name' => 'delete_orders', 'label_ar' => 'حذف الطلبات', 'label_en' => 'Delete Orders', 'category' => 'orders'],
+                ['name' => 'manage_orders', 'label_ar' => 'إدارة الطلبات', 'label_en' => 'Manage Orders', 'category' => 'orders'],
+                ['name' => 'send_to_warehouse', 'label_ar' => 'إرسال إلى المستودع', 'label_en' => 'Send to Warehouse', 'category' => 'orders'],
+                ['name' => 'print_orders', 'label_ar' => 'طباعة الطلبات', 'label_en' => 'Print Orders', 'category' => 'orders'],
+                ['name' => 'view_warehouses', 'label_ar' => 'عرض المستودعات', 'label_en' => 'View Warehouses', 'category' => 'warehouses'],
+                ['name' => 'create_warehouses', 'label_ar' => 'إنشاء مستودعات', 'label_en' => 'Create Warehouses', 'category' => 'warehouses'],
+                ['name' => 'edit_warehouses', 'label_ar' => 'تعديل المستودعات', 'label_en' => 'Edit Warehouses', 'category' => 'warehouses'],
+                ['name' => 'delete_warehouses', 'label_ar' => 'حذف المستودعات', 'label_en' => 'Delete Warehouses', 'category' => 'warehouses'],
+                ['name' => 'view_warehouse_orders', 'label_ar' => 'عرض طلبات المستودع', 'label_en' => 'View Warehouse Orders', 'category' => 'warehouses'],
+                ['name' => 'view_staff', 'label_ar' => 'عرض الموظفين', 'label_en' => 'View Staff', 'category' => 'staff'],
+                ['name' => 'create_staff', 'label_ar' => 'إنشاء موظفين', 'label_en' => 'Create Staff', 'category' => 'staff'],
+                ['name' => 'manage_staff', 'label_ar' => 'إدارة الموظفين', 'label_en' => 'Manage Staff', 'category' => 'staff'],
+                ['name' => 'delete_staff', 'label_ar' => 'حذف الموظفين', 'label_en' => 'Delete Staff', 'category' => 'staff'],
+                ['name' => 'view_notifications', 'label_ar' => 'عرض الإشعارات', 'label_en' => 'View Notifications', 'category' => 'notifications'],
+                ['name' => 'send_notifications', 'label_ar' => 'إرسال إشعارات', 'label_en' => 'Send Notifications', 'category' => 'notifications'],
+                ['name' => 'view_rates', 'label_ar' => 'عرض أسعار الصرف', 'label_en' => 'View Exchange Rates', 'category' => 'rates'],
+                ['name' => 'edit_rates', 'label_ar' => 'تعديل أسعار الصرف', 'label_en' => 'Edit Exchange Rates', 'category' => 'rates'],
             ];
 
             foreach ($permissions as $permission) {
@@ -223,27 +251,27 @@ class RoleController extends Controller
                 [
                     'name_en' => 'admin',
                     'name_ar' => 'مدير النظام',
-                    'permissions' => ['view_dashboard', 'manage_users', 'view_users', 'manage_roles', 'manage_products', 'view_products', 'manage_orders', 'view_orders', 'manage_offers', 'view_offers', 'manage_warehouse', 'view_warehouse', 'manage_categories', 'manage_analytics', 'view_analytics']
+                    'permissions' => ['view_dashboard', 'view_analytics', 'view_users', 'create_users', 'edit_users', 'delete_users', 'manage_user_roles', 'manage_users', 'manage_roles', 'view_products', 'create_products', 'edit_products', 'delete_products', 'manage_products', 'export_products', 'view_categories', 'create_categories', 'edit_categories', 'delete_categories', 'view_offers', 'create_offers', 'edit_offers', 'delete_offers', 'view_orders', 'create_orders', 'edit_orders', 'delete_orders', 'manage_orders', 'send_to_warehouse', 'print_orders', 'view_warehouses', 'create_warehouses', 'edit_warehouses', 'delete_warehouses', 'view_warehouse_orders', 'view_staff', 'create_staff', 'manage_staff', 'delete_staff', 'view_notifications', 'send_notifications', 'view_rates', 'edit_rates']
                 ],
                 [
                     'name_en' => 'manager',
                     'name_ar' => 'مدير',
-                    'permissions' => ['view_dashboard', 'view_users', 'manage_products', 'view_products', 'manage_orders', 'view_orders', 'manage_offers', 'view_offers', 'manage_categories', 'view_analytics']
+                    'permissions' => ['view_dashboard', 'view_analytics', 'view_users', 'edit_users', 'view_products', 'create_products', 'edit_products', 'manage_products', 'view_categories', 'create_categories', 'edit_categories', 'view_offers', 'create_offers', 'edit_offers', 'view_orders', 'edit_orders', 'manage_orders', 'send_to_warehouse', 'view_warehouses', 'edit_warehouses', 'view_warehouse_orders', 'view_staff', 'manage_staff', 'view_notifications', 'send_notifications', 'view_rates']
                 ],
                 [
                     'name_en' => 'warehouse_manager',
                     'name_ar' => 'مدير المستودع',
-                    'permissions' => ['view_dashboard', 'view_products', 'view_orders', 'manage_warehouse', 'view_warehouse']
+                    'permissions' => ['view_dashboard', 'view_orders', 'edit_orders', 'manage_orders', 'view_warehouse_orders', 'view_warehouses', 'edit_warehouses']
                 ],
                 [
                     'name_en' => 'driver',
                     'name_ar' => 'سائق',
-                    'permissions' => ['view_orders']
+                    'permissions' => ['view_dashboard', 'view_orders', 'edit_orders']
                 ],
                 [
                     'name_en' => 'customer',
                     'name_ar' => 'عميل',
-                    'permissions' => ['view_products', 'view_offers']
+                    'permissions' => ['view_dashboard', 'view_products', 'view_offers', 'view_orders', 'create_orders', 'edit_orders']
                 ],
             ];
 

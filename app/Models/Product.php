@@ -8,7 +8,7 @@ use App\Models\exchange_rate;
 class Product extends Model
 {
     protected $fillable = [
-        'ameen_guid','name','retail_price','wholesale_price','quantity','category_id','image'
+        'ameen_guid','name', 'ameen_code','retail_price','wholesale_price','quantity','category_id','image'
     ];
 
     /**

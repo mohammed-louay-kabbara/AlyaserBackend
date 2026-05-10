@@ -184,7 +184,7 @@ class warehousecontroller extends Controller
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
-        $order = Order::where('id', $id)->where('warehouse_id', $user->id)->first();
+        $order = Order::find($id);
         if (!$order) {
             return response()->json(['error' => 'الطلب غير موجود'], 404);
         }

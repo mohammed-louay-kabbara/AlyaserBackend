@@ -7,8 +7,19 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class ProductsExport implements FromCollection, WithHeadings, WithMapping
 {
+    protected $products;
+
+    public function __construct($products = null)
+    {
+        $this->products = $products;
+    }
+
     public function collection()
     {
+        // إذا تم تمرير منتجات محددة، استخدمها، وإلا جلب جميع المنتجات
+        if ($this->products) {
+            return $this->products;
+        }
         // جلب المنتجات مع الأصناف لتجنب مشكلة N+1 Query
         return Product::with('category')->get();
     }

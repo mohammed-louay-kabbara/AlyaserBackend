@@ -167,7 +167,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboardStats']);
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboardStats'])->middleware('permission:view_dashboard');
 
 
 
@@ -179,17 +179,17 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::get('/admin/users', [AdminController::class, 'getUsers']);
+    Route::get('/admin/users', [AdminController::class, 'getUsers'])->middleware('permission:view_users');
 
 
 
-    Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus']);
+    Route::post('/admin/users/bulk-toggle-status', [AdminController::class, 'bulkToggleStatus'])->middleware('permission:manage_users');
 
 
 
-    Route::post('/admin/users/{id}/reset-password', [AdminController::class, 'resetPassword']);
+    Route::post('/admin/users/{id}/reset-password', [AdminController::class, 'resetPassword'])->middleware('permission:manage_users');
 
-    Route::put('/admin/users/{id}/role', [AdminController::class, 'updateUserRole']);
+    Route::put('/admin/users/{id}/role', [AdminController::class, 'updateUserRole'])->middleware('permission:manage_users');
 
 
 
@@ -197,23 +197,23 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::get('/admin/staff', [StaffController::class, 'getAdminStaff']);
+    Route::get('/admin/staff', [StaffController::class, 'getAdminStaff'])->middleware('permission:view_staff');
 
 
 
-    Route::post('/admin/staff', [StaffController::class, 'createStaff']);
+    Route::post('/admin/staff', [StaffController::class, 'createStaff'])->middleware('permission:create_staff');
 
 
 
-    Route::put('/admin/staff/{id}', [StaffController::class, 'updateStaff']);
+    Route::put('/admin/staff/{id}', [StaffController::class, 'updateStaff'])->middleware('permission:manage_staff');
 
 
 
-    Route::delete('/admin/staff/{id}', [StaffController::class, 'deleteStaff']);
+    Route::delete('/admin/staff/{id}', [StaffController::class, 'deleteStaff'])->middleware('permission:delete_staff');
 
 
 
-    Route::get('/admin/staff/{id}', [StaffController::class, 'getStaffDetail']);
+    Route::get('/admin/staff/{id}', [StaffController::class, 'getStaffDetail'])->middleware('permission:view_staff');
 
 
 
@@ -225,31 +225,31 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::get('/admin/products', [ProductController::class, 'getAdminProducts']);
+    Route::get('/admin/products', [ProductController::class, 'getAdminProducts'])->middleware('permission:view_products');
 
 
 
-    Route::get('/admin/products/search', [ProductController::class, 'searchAdmin']);
+    Route::get('/admin/products/search', [ProductController::class, 'searchAdmin'])->middleware('permission:view_products');
 
 
 
-    Route::post('/admin/products/sync-ameen', [ProductController::class, 'syncWithAmeen']);
+    Route::post('/admin/products/sync-ameen', [ProductController::class, 'syncWithAmeen'])->middleware('permission:create_products');
 
 
 
-    Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
+    Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage'])->middleware('permission:manage_products');
 
 
 
-    Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
+    Route::delete('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage'])->middleware('permission:manage_products');
+    Route::post('/warehouse/orders/{id}/ready', [warehousecontroller::class, 'markAsReady'])->name('warehouse.markAsReady');
+
+
+    Route::get('/admin/products/export-excel', [ProductController::class, 'exportExcel'])->middleware('permission:export_products');
 
 
 
-    Route::get('/admin/products/export-excel', [ProductController::class, 'exportExcel']);
-
-
-
-    Route::get('/admin/products/export-pdf', [ProductController::class, 'exportPdf']);
+    Route::get('/admin/products/export-pdf', [ProductController::class, 'exportPdf'])->middleware('permission:export_products');
 
 
 
@@ -261,39 +261,39 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::get('/admin/orders', [OrderController::class, 'getAdminOrders']);
+    Route::get('/admin/orders', [OrderController::class, 'getAdminOrders'])->middleware('permission:view_orders');
 
 
 
-    Route::post('/admin/orders/{id}/send-to-warehouse', [OrderController::class, 'sendToWarehouse']);
+    Route::post('/admin/orders/{id}/send-to-warehouse', [OrderController::class, 'sendToWarehouse'])->middleware('permission:manage_orders');
 
 
 
-    Route::post('/admin/orders/bulk-send', [OrderController::class, 'bulkSendToWarehouse']);
+    Route::post('/admin/orders/bulk-send', [OrderController::class, 'bulkSendToWarehouse'])->middleware('permission:manage_orders');
 
 
 
-    Route::get('/admin/orders/print', [OrderController::class, 'printOrders']);
+    Route::get('/admin/orders/print', [OrderController::class, 'printOrders'])->middleware('permission:print_orders');
 
 
 
-    Route::put('/admin/orders/{id}', [OrderController::class, 'update']);
+    Route::put('/admin/orders/{id}', [OrderController::class, 'update'])->middleware('permission:manage_orders');
 
 
 
-    Route::delete('/admin/orders/{id}', [OrderController::class, 'destroy']);
+    Route::delete('/admin/orders/{id}', [OrderController::class, 'destroy'])->middleware('permission:delete_orders');
 
 
 
-    Route::get('/admin/orders/user/{id}', [OrderController::class, 'orders_user']);
+    Route::get('/admin/orders/user/{id}', [OrderController::class, 'orders_user'])->middleware('permission:view_orders');
 
 
 
-    Route::get('/admin/orders/user/{id}/json', [OrderController::class, 'getUserOrdersJson']);
+    Route::get('/admin/orders/user/{id}/json', [OrderController::class, 'getUserOrdersJson'])->middleware('permission:view_orders');
 
 
 
-    Route::get('/admin/orders/warehouse/{id}/json', [OrderController::class, 'getWarehouseOrdersJson']);
+    Route::get('/admin/orders/warehouse/{id}/json', [OrderController::class, 'getWarehouseOrdersJson'])->middleware('permission:view_orders');
 
     // Warehouse User Routes (role=3)
     Route::get('/warehouse/orders', [OrderController::class, 'getWarehouseUserOrders']);
@@ -388,27 +388,27 @@ Route::middleware(['auth:api'])->group(function () {
 
     // Roles & Permissions Management
 
-    Route::get('/admin/roles', [RoleController::class, 'index']);
+    Route::get('/admin/roles', [RoleController::class, 'index'])->middleware('permission:manage_roles');
 
-    Route::get('/admin/roles/{id}', [RoleController::class, 'show']);
+    Route::get('/admin/roles/{id}', [RoleController::class, 'show'])->middleware('permission:manage_roles');
 
+    Route::put('/admin/roles/{id}', [RoleController::class, 'update'])->middleware('permission:manage_roles');
 
+    Route::post('/admin/roles', [RoleController::class, 'store'])->middleware('permission:manage_roles');
 
-    Route::put('/admin/roles/{id}', [RoleController::class, 'update']);
+    Route::delete('/admin/roles/{id}', [RoleController::class, 'destroy'])->middleware('permission:manage_roles');
 
-    Route::delete('/admin/roles/{id}', [RoleController::class, 'destroy']);
+    Route::get('/admin/permissions', [RoleController::class, 'getPermissions'])->middleware('permission:manage_roles');
 
-    Route::get('/admin/permissions', [RoleController::class, 'getPermissions']);
-
-    Route::post('/admin/roles/seed', [RoleController::class, 'seed']);
+    Route::post('/admin/roles/seed', [RoleController::class, 'seed'])->middleware('permission:manage_roles');
 
 
 
 });
 
-    Route::post('/admin/roles', [RoleController::class, 'store']);
+Route::post('/admin/roles', [RoleController::class, 'store'])->middleware('permission:manage_roles');
 Route::post('/delete_all', [ProductController::class, 'delete_all']);
-Route::post('/exportOrderToAmeenTxt/{id}', [OrderController::class, 'exportOrderToAmeenTxt']);
+Route::get('/exportOrderToAmeenTxt/{id}', [OrderController::class, 'exportOrderToAmeenTxt']);
 
 
 
