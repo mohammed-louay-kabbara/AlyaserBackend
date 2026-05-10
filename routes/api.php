@@ -237,7 +237,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage'])->middleware('permission:manage_products');
+    Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
 
 
 
