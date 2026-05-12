@@ -224,8 +224,8 @@ public function syncWithAmeen(Request $request)
         ->when($status, function ($query, $status) {
             if ($status == 'available') {
                 return $query->where('quantity', '>', 0);
-            } elseif ($status == 'out_of_stock') {
-                return $query->where('quantity', '<=', 0);
+            } elseif ($status == 'low_stock') {
+                return $query->where('quantity', '<', 5);
             }
         })->when($category, function ($query, $category) {
             return $query->where('category_id', $category);
@@ -439,8 +439,8 @@ public function getAdminProducts(Request $request)
     if ($status) {
         if ($status == 'available') {
             $query->where('quantity', '>', 0);
-        } elseif ($status == 'out_of_stock') {
-            $query->where('quantity', '<=', 0);
+        } elseif ($status == 'low_stock') {
+            $query->where('quantity', '<', 5);
         }
     }
 
@@ -472,8 +472,8 @@ public function searchAdmin(Request $request)
     if ($status) {
         if ($status == 'available') {
             $query->where('quantity', '>', 0);
-        } elseif ($status == 'out_of_stock') {
-            $query->where('quantity', '<=', 0);
+        } elseif ($status == 'low_stock') {
+            $query->where('quantity', '<', 5);
         }
     }
 

@@ -41,13 +41,13 @@ class StaffController extends Controller
 
     public function createStaff(Request $request)
     {
+        $defaultPassword = '12345678';
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|unique:users,phone',
             'address' => 'nullable|string',
             'zone' => 'nullable|string',
-            'password' => 'required|string|min:8',
-            'role_id' => 'required|in:2,3',
+            'role_id' => 'required|exists:roles,id',
             'activated' => 'boolean'
         ]);
 
@@ -65,7 +65,8 @@ class StaffController extends Controller
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'zone' => $request->zone,
-                'password' => Hash::make($request->password),
+                'password' => Hash::make($defaultPassword),
+                'force_password_change' => 1,
                 'role_id' => $request->role_id,
                 'activated' => $request->filled('activated') ? $request->activated : 1
             ]);

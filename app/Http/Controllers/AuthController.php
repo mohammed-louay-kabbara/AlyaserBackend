@@ -217,6 +217,7 @@ public function login_admin(Request $request)
                 'shop_name' => $user->shop_name,
                 'address' => $user->address,
                 'activated' => $user->activated,
+                'force_password_change' => $user->force_password_change ?? true,
                 'role' => $user->role ? [
                     'id' => $user->role->id,
                     'name_en' => $user->role->name_en,

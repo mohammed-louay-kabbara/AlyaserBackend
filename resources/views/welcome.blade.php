@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+ <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon.png') }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مركز الياسر التجاري</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -403,7 +404,7 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo">
-    <img src="{{ asset('logo.png') }}" alt="شعار الياسر">
+    <img src="{{ asset('assets/img/favicon.png') }}" alt="شعار الياسر">
     <div>
       <div class="nav-logo-text">مركز الياسر</div>
       <div class="nav-logo-sub">التجاري — قدسيا، دمشق</div>
@@ -425,7 +426,7 @@
   <div class="hero-pattern"></div>
   <div class="hero-content">
     <div class="hero-logo">
-      <img src="{{ asset('logo.png') }}" alt="شعار الياسر التجاري">
+      <img src="{{ asset('assets/img/logo-ct-dark.png') }}" alt="شعار الياسر التجاري">
     </div>
     <div class="hero-badge">من قلب قدسيا — دمشق الشام</div>
     <h1>مركز <span class="accent">الياسر</span> التجاري</h1>

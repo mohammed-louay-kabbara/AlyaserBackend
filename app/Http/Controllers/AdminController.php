@@ -21,7 +21,7 @@ public function index()
     $activated = User::where('activated', 0)->count(); // ربما تقصد غير المنشطين هنا؟
     $category = category::count();
     $Product_count = Product::where('quantity', '>=',1)->count();
-    $Product_quantity = Product::where('quantity','<=', 8)->count();
+    $Product_quantity = Product::where('quantity','<=', 10)->where('quantity', '>',0)->count();
     $Order_pending = Order::where('status', 'pending')->count();
     $Order_processing = Order::where('status', 'processing')->count();
     $Offers_count = Offer::where('expires_at', '>', now())->count();
@@ -87,8 +87,7 @@ public function index()
         $query->where('activated', $request->activated);
     }
 
-    $users = $query->get(); // أو paginate(20)
-
+    $users = $query->paginate(10); // أو paginate(20)
     return view('users', compact('users'));
 }
 public function bulkToggleStatus(Request $request)
@@ -166,7 +165,7 @@ public function dashboardStats()
 
 public function getUsers(Request $request)
 {
-    $query = User::with('role');
+    $query = User::with('role')->where('role_id',2);
 
     if ($request->filled('search')) {
         $query->where('name', 'like', '%' . $request->search . '%');
@@ -195,7 +194,8 @@ public function resetPassword(Request $request, $id)
     ]);
 
     User::where('id', $id)->update([
-        'password' => Hash::make($request->password)
+        'password' => Hash::make($request->password),
+        'force_password_change' => true
     ]);
 
     return response()->json([
