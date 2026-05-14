@@ -86,26 +86,32 @@ public function bulkToggleStatus(Request $request, FcmService $fcmService)
         'activated' => 'required|boolean',
     ]);
 
-    // تحديث حالة جميع المستخدمين المحددين دفعة واحدة
-   $users= User::whereIn('id', $request->ids)->update([
-        'activated' => $request->activated
-    ]);
-    foreach ($users as $user) {
+    $query = User::whereIn('id', $request->ids);
+        $users = $query->get();
+
+        $query->update([
+            'activated' => $request->activated
+        ]);
+
+    // إرسال الإشعارات في حال التفعيل فقط
+
+        foreach ($users as $user) {
             if ($user->fcm_token) {
-            $fcmService->sendAndSaveNotification(
-                $user->id,
-                $user->fcm_token, 
-                'تم تفعيل حسابك! 🎉', 
-                'أهلاً بك في تطبيق الياسر، تم قبول طلب انضمامك بنجاح.',
-                'home'
-            );
+                $fcmService->sendAndSaveNotification(
+                    $user->id,
+                    $user->fcm_token,
+                    'تم تفعيل حسابك! 🎉',
+                    'أهلاً بك في تطبيق الياسر، تم قبول طلب انضمامك بنجاح.',
+                    'home'
+                );
         }
+    }
 
     return response()->json([
-        'success' => true, 
+        'success' => true,
         'message' => 'تم تحديث حالة المستخدمين بنجاح'
     ]);
-}}
+}
 
 public function updateUserRole(Request $request, $id)
 {
