@@ -94,7 +94,7 @@ public function index()
     $users = $query->paginate(10); // أو paginate(20)
     return view('users', compact('users'));
 }
-public function bulkToggleStatus(Request $request)
+public function bulkToggleStatus(Request $request, FcmService $fcmService)
 {
     // التأكد من وصول البيانات بشكل صحيح
     $request->validate([
@@ -121,7 +121,7 @@ public function bulkToggleStatus(Request $request)
         'success' => true, 
         'message' => 'تم تحديث حالة المستخدمين بنجاح'
     ]);
-}
+}}
 
 public function updateUserRole(Request $request, $id)
 {
