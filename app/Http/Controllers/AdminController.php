@@ -60,22 +60,6 @@ public function index()
         ]);
         return back();
     }
-    // public function get_users()
-    // {
-    //     $users=User::orderBy('created_at', 'desc')->get();
-    //     return view('users',compact('users'));
-    // }
-    // public function get_users(Request $request)
-    // {
-    //         $query = User::query();
-    //         // إذا تم إرسال كلمة للبحث، قم بالفلترة
-    //         if ($request->has('search') && $request->search != '') {
-    //             $query->where('name', 'like', '%' . $request->search . '%');
-    //         }
-    //         $users = $query->get(); // أو paginate(20) وهو الأفضل
-            
-    //         return view('users', compact('users'));
-    // }
     public function get_users(Request $request)
 {
     $query = User::query();
