@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class offer_product extends Model
 {
-    protected $fillable = ['offer_id', 'product_id', 'quantity'];
+    protected $fillable = ['offer_id', 'product_id', 'quantity','purchase_type'];
     public function offer()
     {
         return $this->belongsTo(Offer::class);

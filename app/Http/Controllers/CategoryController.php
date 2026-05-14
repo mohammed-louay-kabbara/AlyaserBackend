@@ -152,10 +152,21 @@ class CategoryController extends Controller
         ]);
 
         $category = category::findOrFail($id);
-        
+
         // Update category_id for each product (one-to-many relationship)
         Product::whereIn('id', $request->product_ids)->update(['category_id' => $id]);
 
         return response()->json(['message' => 'تم إضافة المنتجات بنجاح'], 200);
+    }
+
+    public function removeProduct($categoryId, $productId)
+    {
+        $category = category::findOrFail($categoryId);
+        $product = Product::findOrFail($productId);
+
+        // Remove product from category by setting category_id to null
+        $product->update(['category_id' => null]);
+
+        return response()->json(['message' => 'تم إزالة المنتج من الصنف بنجاح'], 200);
     }
 }

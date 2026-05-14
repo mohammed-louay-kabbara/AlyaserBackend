@@ -84,8 +84,15 @@ public function login_admin(Request $request)
 
         $credentials = $request->only('phone', 'password');
         
+        // Check if phone number exists
+        $user = User::where('phone', $request->phone)->first();
+        if (!$user) {
+            return response()->json(['status' => false, 'error' => 'رقم الهاتف غير مسجل'], 401);
+        }
+        
+        // Check if password is correct
         if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['status' => false, 'error' => 'رقم الهاتف أو كلمة المرور غير صحيحة'], 401);
+            return response()->json(['status' => false, 'error' => 'كلمة المرور غير صحيحة'], 401);
         }
 
         $user = auth()->user();
@@ -120,7 +127,7 @@ public function login_admin(Request $request)
                 'password'  => Hash::make($request->password),
                 'role_id'      => 2, // مستخدم عادي افتراضياً
             ]);
-            
+            $user->update(['user_number' => 'Cu' . '_' . str_pad($user->id, 6, '0', STR_PAD_LEFT)]);
             $token = auth()->login($user);
             return response()->json([
                 'status'  => true,

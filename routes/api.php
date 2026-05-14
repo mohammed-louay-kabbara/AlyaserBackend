@@ -314,6 +314,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/admin/categories/{id}', [CategoryController::class, 'update']);
     Route::delete('/admin/categories/{id}', [CategoryController::class, 'destroy']);
     Route::post('/admin/categories/{id}/products', [CategoryController::class, 'assignProducts']);
+    Route::delete('/admin/categories/{id}/products/{productId}', [CategoryController::class, 'removeProduct']);
 
 
     // Offers Management

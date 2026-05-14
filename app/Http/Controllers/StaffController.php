@@ -70,6 +70,7 @@ class StaffController extends Controller
                 'role_id' => $request->role_id,
                 'activated' => $request->filled('activated') ? $request->activated : 1
             ]);
+            $staff->update(['user_number' => 'emp' . '_' . str_pad($staff->id, 6, '0', STR_PAD_LEFT)]);
 
             return response()->json([
                 'status' => 'success',
@@ -102,7 +103,7 @@ class StaffController extends Controller
             'address' => 'nullable|string',
             'zone' => 'nullable|string',
             'password' => 'nullable|string|min:8',
-            'role_id' => 'sometimes|required|in:2,3',
+            'role_id' => 'sometimes|required',
             'activated' => 'sometimes|boolean'
         ]);
 

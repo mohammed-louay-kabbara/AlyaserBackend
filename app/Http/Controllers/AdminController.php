@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Offer;
 use App\Models\OrderItem;
 use App\Models\exchange_rate;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
+use App\Services\FcmService; // استيراد الخدمة الجديدة
 
 class AdminController extends Controller
 {
@@ -99,9 +103,19 @@ public function bulkToggleStatus(Request $request)
     ]);
 
     // تحديث حالة جميع المستخدمين المحددين دفعة واحدة
-    User::whereIn('id', $request->ids)->update([
+   $users= User::whereIn('id', $request->ids)->update([
         'activated' => $request->activated
     ]);
+    foreach ($users as $user) {
+            if ($user->fcm_token) {
+            $fcmService->sendAndSaveNotification(
+                $user->id,
+                $user->fcm_token, 
+                'تم تفعيل حسابك! 🎉', 
+                'أهلاً بك في تطبيق الياسر، تم قبول طلب انضمامك بنجاح.',
+                'home'
+            );
+        }
 
     return response()->json([
         'success' => true, 
@@ -166,6 +180,7 @@ public function dashboardStats()
 public function getUsers(Request $request)
 {
     $query = User::with('role')->where('role_id',2);
+      $perPage = $request->input('per_page', 10);
 
     if ($request->filled('search')) {
         $query->where('name', 'like', '%' . $request->search . '%');
@@ -179,7 +194,7 @@ public function getUsers(Request $request)
         $query->where('activated', 0);
     }
 
-    $users = $query->latest()->get();
+    $users = $query->latest()->paginate($perPage);
 
     return response()->json([
         'status' => true,

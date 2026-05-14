@@ -17,81 +17,6 @@ use App\Models\category;
 
 class ProductController extends Controller
 {
-    public function addproduct(){
-        Product::create([
-            'name' => 'سكر',
-            'retail_price' => 10000,
-            'wholesale_price' => 100000,
-            'quantity' => 10,
-        ]);
-        return response()->json('تم الحفظ بنجاح', 200);
-    }
-// public function syncWithAmeen(Request $request)
-//     {
-//         try {
-//             set_time_limit(0);
-            
-//             $ameenProducts = DB::connection('ameen')
-//                 ->table('mt000')
-//                 ->select(
-//                     'GUID', 
-//                     'Name', 
-//                     'Unity',      // الوحدة 1
-//                     'Unit2',      // الوحدة 2
-//                     'Unit2Fact',  // عامل التحويل
-//                     'Qty',
-//                     'LastPrice',   // السعر الحقيقي للوحدة 1 (كما أكدت)
-//                     'LastPrice2'   // السعر الحقيقي للوحدة 2 (كما أكدت)
-//                 )
-//                 ->where('bHide', 0)
-//                 ->get();
-
-//             $updated = 0;
-//             $created = 0;
-
-//             foreach ($ameenProducts as $product) {
-                
-//                 // 1. تحديد سعر الوحدة الأولى (المفرق) من الحقل الصحيح
-//                 $finalPrice = $product->LastPrice ?? 0;
-
-//                 // 2. إذا كان المنتج يباع بالوحدة الثانية (الطرد) حصراً أو كان سعر الأولى 0
-//                 // يمكننا حساب سعر القطعة الواحدة من سعر الطرد لضمان الدقة
-//                 if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
-//                     $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
-//                 }
-
-//                 // 3. تحديد سعر الجملة من LastPrice2
-//                 $wholesalePrice = $product->LastPrice2 ?? 0;
-                
-//                 // إذا كان سعر الجملة 0 وسعر المفرق موجود، يمكن استخدام سعر المفرق كقيمة افتراضية
-//                 if ($wholesalePrice == 0 && $finalPrice > 0) {
-//                     $wholesalePrice = $finalPrice;
-//                 }
-
-//                 // 4. تحديث أو إنشاء في قاعدة البيانات
-//                 $sync = Product::updateOrCreate(
-//                     ['ameen_guid' => $product->GUID], // البحث عن المنتج عبر GUID
-//                     [
-//                         'name'           => $product->Name,
-//                         'retail_price'   => $finalPrice, // السعر من LastPrice
-//                         'wholesale_price'=> $wholesalePrice, // السعر من LastPrice2
-//                         'quantity'       => $product->Qty ?? 0,
-//                     ]
-//                 );
-
-//                 $sync->wasRecentlyCreated ? $created++ : $updated++;
-//             }
-
-//             return response()->json([
-//                 'status'  => 'success',
-//                 'message' => "تمت المزامنة بنجاح باستخدام حقول LastPrice",
-//                 'counts'  => ['new' => $created, 'updated' => $updated]
-//             ]);
-
-//         } catch (\Exception $e) {
-//             return response()->json(['error' => $e->getMessage()], 500);
-//         }
-//     }
 public function syncWithAmeen(Request $request)
 {
     try {
@@ -430,8 +355,8 @@ public function getAdminProducts(Request $request)
     $category = $request->input('category_id');
     $perPage = $request->input('per_page', 10);
 
-    $query = Product::query();
-
+    $query = Product::where('retail_price', '!=', 0)
+            ->where('wholesale_price', '!=', 0);
     if ($search) {
         $query->where('name', 'LIKE', "%{$search}%");
     }
@@ -463,10 +388,22 @@ public function searchAdmin(Request $request)
     $status = $request->input('stock_status');
     $category = $request->input('category_id');
 
-    $query = Product::query();
+    $query = Product::where('retail_price', '!=', 0)
+            ->where('wholesale_price', '!=', 0);
 
     if ($search) {
-        $query->where('name', 'LIKE', "%{$search}%");
+
+        $words = explode(' ', trim($search));
+
+        $query->where(function ($q) use ($words) {
+
+            foreach ($words as $word) {
+
+                if (!empty($word)) {
+                    $q->where('name', 'LIKE', '%' . $word . '%');
+                }
+            }
+        });
     }
 
     if ($status) {

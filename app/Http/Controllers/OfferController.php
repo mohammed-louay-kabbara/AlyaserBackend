@@ -46,7 +46,7 @@ class OfferController extends Controller
         }
         
         $offers = $query->get();
-        $products = Product::all();
+        $products = Product::with('category')->get();
         return response()->json([
             'offers' => $offers,
             'products' => $products
@@ -84,7 +84,8 @@ public function store(Request $request)
         if (is_array($products)) {
             foreach ($products as $item) {
                 $offer->products()->attach($item['product_id'], [
-                    'quantity' => $item['quantity']
+                    'quantity' => $item['quantity'],
+                    'purchase_type' => $item['purchase_type']
                 ]);
             }
         }
