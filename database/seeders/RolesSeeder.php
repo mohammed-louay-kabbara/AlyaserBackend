@@ -16,6 +16,7 @@ class RolesSeeder extends Seeder
         // Create roles
         $adminRole = Role::firstOrCreate(['name' => 'admin'], [
             'name_ar' => 'مدير النظام',
+            
         ]);
 
         $managerRole = Role::firstOrCreate(['name' => 'manager'], [

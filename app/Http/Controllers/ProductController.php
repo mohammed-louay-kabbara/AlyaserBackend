@@ -40,34 +40,67 @@ public function syncWithAmeen(Request $request)
 
         $updated = 0;
         $created = 0;
-
         foreach ($ameenProducts as $product) {
             
-            $finalPrice = $product->LastPrice ?? 0;
+    $finalPrice = $product->LastPrice ?? 0;
 
-            if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
-                $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
-            }
+    if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
+        $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
+    }
 
-            $wholesalePrice = $product->LastPrice2 ?? 0;
+    $wholesalePrice = $product->LastPrice2 ?? 0;
+    
+    if ($wholesalePrice == 0 && $finalPrice > 0) {
+        $wholesalePrice = $finalPrice;
+    }
+
+    // ── حساب الكمية بالطرد ──────────────────────────────────────
+    $wholesaleQuantity = ($product->Unit2Fact > 0)
+        ? floor($product->Qty / $product->Unit2Fact)  // floor لتجنب الكسور
+        : 0;
+
+    $sync = Product::updateOrCreate(
+        ['ameen_guid' => $product->GUID],
+        [
+            'ameen_code'         => $product->Code,
+            'name'               => $product->Name,
+            'retail_price'       => $finalPrice,
+            'wholesale_price'    => $wholesalePrice,
+            'quantity'           => $product->Qty ?? 0,
+            'wholesale_quantity' => $wholesaleQuantity, // ← هنا
+        ]
+    );
+
+    $sync->wasRecentlyCreated ? $created++ : $updated++;
+}
+
+        // foreach ($ameenProducts as $product) {
             
-            if ($wholesalePrice == 0 && $finalPrice > 0) {
-                $wholesalePrice = $finalPrice;
-            }
+        //     $finalPrice = $product->LastPrice ?? 0;
 
-            $sync = Product::updateOrCreate(
-                ['ameen_guid' => $product->GUID],
-                [
-                    'ameen_code'      => $product->Code,   // ← أضف هذا فقط
-                    'name'            => $product->Name,
-                    'retail_price'    => $finalPrice,
-                    'wholesale_price' => $wholesalePrice,
-                    'quantity'        => $product->Qty ?? 0,
-                ]
-            );
+        //     if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
+        //         $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
+        //     }
 
-            $sync->wasRecentlyCreated ? $created++ : $updated++;
-        }
+        //     $wholesalePrice = $product->LastPrice2 ?? 0;
+            
+        //     if ($wholesalePrice == 0 && $finalPrice > 0) {
+        //         $wholesalePrice = $finalPrice;
+        //     }
+
+        //     $sync = Product::updateOrCreate(
+        //         ['ameen_guid' => $product->GUID],
+        //         [
+        //             'ameen_code'      => $product->Code,   // ← أضف هذا فقط
+        //             'name'            => $product->Name,
+        //             'retail_price'    => $finalPrice,
+        //             'wholesale_price' => $wholesalePrice,
+        //             'quantity'        => $product->Qty ?? 0,
+        //         ]
+        //     );
+
+        //     $sync->wasRecentlyCreated ? $created++ : $updated++;
+        // }
 
         return response()->json([
             'status'  => 'success',
@@ -79,6 +112,7 @@ public function syncWithAmeen(Request $request)
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+
     public function debugAmeenPrice()
     {
         // ضع هنا اسم منتج أو جزء من اسمه أنت متأكد من سعره في الأمين
@@ -95,7 +129,7 @@ public function syncWithAmeen(Request $request)
 
     public function index()
     {
-        $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
+        // $rate = exchange_rate::where('is_default', true)->value('rate') ?? 1;
         $products = Product::where('retail_price', '!=', 0)
             ->where('wholesale_price', '!=', 0)
             ->paginate(20);

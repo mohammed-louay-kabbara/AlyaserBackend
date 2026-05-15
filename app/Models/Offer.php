@@ -15,9 +15,10 @@ class Offer extends Model
     {
         // أضفنا 'offer_products' كبارامتر ثاني لتحديد اسم الجدول بوضوح
         return $this->belongsToMany(Product::class, 'offer_products') 
-                    ->withPivot('quantity')
+                    ->withPivot('quantity', 'purchase_type')
                     ->withTimestamps();
     }
+    
     
 
 }

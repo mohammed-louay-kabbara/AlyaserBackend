@@ -64,11 +64,6 @@ public function login_admin(Request $request)
     {
         return response()->json(auth()->user(), 200);
     }
-    public function admin()
-    {
-        User::where('id',Auth::id())->update([ 'role_id' => 1]);
-        return response()->json(['لقد أصبحت ادمن'], 200);
-    }
 
     // 2. تسجيل دخول المستخدم العادي باستخدام الهاتف
     public function login(Request $request)

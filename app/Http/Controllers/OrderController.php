@@ -50,7 +50,7 @@ class OrderController extends Controller
     public function updateOrderStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,processing,ready,delivered,cancelled'
+            'status' => 'required'
         ]);
         
         $order = Order::find($id);
@@ -243,41 +243,131 @@ public function sendToWarehouse($id)
 //         ]);
 // }
 
+// public function exportOrderToAmeenTxt($id)
+// {
+//     $order = Order::with('items.product')->findOrFail($id);
+//     $lines = [];
+
+//     foreach ($order->items as $item) {
+//         $product = $item->product;
+
+//         // ── حراسة البيانات ──────────────────────────────────────
+//         if (blank($product->ameen_guid)) {
+//             \Log::warning("Product ID {$product->id} has no ameen_guid — skipped");
+//             continue;
+//         }
+
+//         // الأولوية: كود Ameen الرقمي، ثم GUID كاحتياط
+//         $code = $product->ameen_code ?? strtoupper($product->ameen_guid);
+
+//         // السعر: من سطر الطلب أولاً، ثم retail_price كاحتياط، ثم 1 لتجنب الرفض
+//         $price = $item->price
+//               ?? $product->retail_price
+//               ?? 0;
+
+//         if ($price <= 0) {
+//             \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
+//         }
+
+//         $qty      = number_format($item->quantity, 2, '.', '');
+//         $priceStr = number_format($price,          2, '.', '');
+
+//         $lines[] = "{$code}\t{$qty}\t{$priceStr}";
+//     }
+
+//     if (empty($lines)) {
+//         return response()->json([
+//             'error' => 'لا توجد منتجات صالحة للتصدير. تأكد من وجود ameen_guid وسعر لكل منتج.'
+//         ], 422);
+//     }
+
+//     $content  = implode("\r\n", $lines) . "\r\n";
+//     $fileName = "Ameen_Import_Order_{$order->id}.txt";
+
+//     return response($content)
+//         ->withHeaders([
+//             'Content-Type'        => 'text/plain; charset=utf-8',
+//             'Content-Disposition' => "attachment; filename={$fileName}",
+//         ]);
+// }
+
 public function exportOrderToAmeenTxt($id)
 {
-    $order = Order::with('items.product')->findOrFail($id);
+    $order = Order::with([
+        'items.product',
+        'items.offer.products', // تحميل منتجات العرض مع pivot
+    ])->findOrFail($id);
+
     $lines = [];
 
     foreach ($order->items as $item) {
+
+        // ══════════════════════════════════════════
+        // الحالة 1: عرض — نفكك منتجاته ونصدّر كل واحد مستقل
+        // ══════════════════════════════════════════
+        if ($item->purchase_type === 'عرض' && $item->offer) {
+
+            foreach ($item->offer->products as $offerProduct) {
+
+                if (blank($offerProduct->ameen_guid)) {
+                    \Log::warning("Offer product ID {$offerProduct->id} has no ameen_guid — skipped");
+                    continue;
+                }
+
+                $pivotType = $offerProduct->pivot->purchase_type; // طرد أو قطعة
+                $pivotQty  = $offerProduct->pivot->quantity * $item->quantity; // كمية العرض × كمية الطلب
+
+                $unitNumber = $pivotType === 'طرد' ? 2 : 1;
+
+                // السعر حسب نوع الوحدة
+                $price = $pivotType === 'طرد'
+                    ? $offerProduct->wholesale_price
+                    : $offerProduct->retail_price;
+
+                if ($price <= 0) {
+                    \Log::warning("Offer product ID {$offerProduct->id} has zero price — Ameen will reject it");
+                }
+
+                $code     = $offerProduct->ameen_code ?? strtoupper($offerProduct->ameen_guid);
+                $qty      = number_format($pivotQty, 2, '.', '');
+                $priceStr = number_format($price,    2, '.', '');
+
+                $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
+            }
+
+            continue; // لا تكمل لباقي الكود لأن العرض تمت معالجته
+        }
+
+        // ══════════════════════════════════════════
+        // الحالة 2: منتج مباشر (قطعة أو طرد)
+        // ══════════════════════════════════════════
         $product = $item->product;
 
-        // ── حراسة البيانات ──────────────────────────────────────
-        if (blank($product->ameen_guid)) {
-            \Log::warning("Product ID {$product->id} has no ameen_guid — skipped");
+        if (blank($product?->ameen_guid)) {
+            \Log::warning("Product ID {$product?->id} has no ameen_guid — skipped");
             continue;
         }
 
-        // الأولوية: كود Ameen الرقمي، ثم GUID كاحتياط
-        $code = $product->ameen_code ?? strtoupper($product->ameen_guid);
+        $unitNumber = $item->purchase_type === 'طرد' ? 2 : 1;
 
-        // السعر: من سطر الطلب أولاً، ثم retail_price كاحتياط، ثم 1 لتجنب الرفض
-        $price = $item->price
-              ?? $product->retail_price
-              ?? 0;
+        $price = $item->unit_price > 0
+            ? $item->unit_price
+            : ($unitNumber === 2 ? $product->wholesale_price : $product->retail_price);
 
         if ($price <= 0) {
             \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
         }
 
+        $code     = $product->ameen_code ?? strtoupper($product->ameen_guid);
         $qty      = number_format($item->quantity, 2, '.', '');
         $priceStr = number_format($price,          2, '.', '');
 
-        $lines[] = "{$code}\t{$qty}\t{$priceStr}";
+        $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
     }
 
     if (empty($lines)) {
         return response()->json([
-            'error' => 'لا توجد منتجات صالحة للتصدير. تأكد من وجود ameen_guid وسعر لكل منتج.'
+            'error' => 'لا توجد منتجات صالحة للتصدير.'
         ], 422);
     }
 
@@ -737,6 +827,19 @@ public function getAdminOrders(Request $request)
         'orders' => $orders,
         'warehouses' => $warehouses
     ]);
+}
+
+public function getAdminOrderByNumber($orderNumber)
+{
+    $order = Order::with(['user', 'items.product', 'items.offer'])
+        ->where('order_number', $orderNumber)
+        ->first();
+
+    if (!$order) {
+        return response()->json(['message' => 'الطلب غير موجود'], 404);
+    }
+
+    return response()->json(['order' => $order], 200);
 }
 
 }

@@ -99,7 +99,6 @@ Route::post('refresh', [AuthController::class,'refresh']);
 Route::get('me', [AuthController::class,'me']);
 Route::post('login', [AuthController::class,'login']);
 Route::post('register', [AuthController::class,'register']);
-Route::post('admin_role', [AuthController::class,'admin']);
 Route::resource('Product',ProductController::class);
 Route::get('Product-search',[ProductController::class,'search']);
 Route::resource('Category',CategoryController::class);
@@ -237,11 +236,16 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage']);
+    Route::post('/admin/products/{id}/upload-image', [ProductController::class, 'uploadImage'])->middleware('permission:edit_products');
 
+    Route::post('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage'])->middleware('permission:edit_products');
+    
+    Route::post('/admin/products/delete-all', [ProductController::class, 'delete_all'])->middleware('permission:delete_products');
 
+    Route::get('/admin/orders/export-ameen/{id}', [OrderController::class, 'exportOrderToAmeenTxt'])->middleware('permission:view_orders');
 
-    Route::post('/admin/products/{id}/delete-image', [ProductController::class, 'deleteImage']);
+    Route::post('/admin/orders/export-ameen-multiple', [OrderController::class, 'exportMultipleOrdersToAmeenTxt'])->middleware('permission:view_orders');
+
     Route::post('/warehouse/orders/{id}/ready', [warehousecontroller::class, 'markAsReady'])->name('warehouse.markAsReady');
 
 
@@ -262,6 +266,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
     Route::get('/admin/orders', [OrderController::class, 'getAdminOrders'])->middleware('permission:view_orders');
+    Route::get('/admin/orders/by-number/{orderNumber}', [OrderController::class, 'getAdminOrderByNumber'])->middleware('permission:view_orders');
 
 
 
@@ -307,86 +312,46 @@ Route::middleware(['auth:api'])->group(function () {
 
     // Categories Management
 
-
-
-    Route::get('/admin/categories', [CategoryController::class, 'getAdminCategories']);
-    Route::post('/admin/categories', [CategoryController::class, 'store']);
-    Route::post('/admin/categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('/admin/categories/{id}', [CategoryController::class, 'destroy']);
-    Route::post('/admin/categories/{id}/products', [CategoryController::class, 'assignProducts']);
-    Route::delete('/admin/categories/{id}/products/{productId}', [CategoryController::class, 'removeProduct']);
-
+    Route::get('/admin/categories', [CategoryController::class, 'getAdminCategories'])->middleware('permission:view_categories');
+    Route::post('/admin/categories', [CategoryController::class, 'store'])->middleware('permission:create_categories');
+    Route::post('/admin/categories/{id}', [CategoryController::class, 'update'])->middleware('permission:edit_categories');
+    Route::delete('/admin/categories/{id}', [CategoryController::class, 'destroy'])->middleware('permission:delete_categories');
+    Route::post('/admin/categories/{id}/products', [CategoryController::class, 'assignProducts'])->middleware('permission:edit_categories');
+    Route::delete('/admin/categories/{id}/products/{productId}', [CategoryController::class, 'removeProduct'])->middleware('permission:edit_categories');
 
     // Offers Management
 
-
-
-    Route::get('/admin/offers', [OfferController::class, 'getAdminOffers']);
-    Route::post('/admin/offers_update/{id}', [OfferController::class, 'update']);
-
-
+    Route::get('/admin/offers', [OfferController::class, 'getAdminOffers'])->middleware('permission:view_offers');
+    Route::post('/admin/offers_update/{id}', [OfferController::class, 'update'])->middleware('permission:edit_offers');
 
     // Exchange Rates Management
 
+    Route::get('/admin/exchange-rates', [ExchangeRateController::class, 'index'])->middleware('permission:view_rates');
 
+    Route::post('/admin/exchange-rates', [ExchangeRateController::class, 'store'])->middleware('permission:edit_rates');
 
-    Route::get('/admin/exchange-rates', [ExchangeRateController::class, 'index']);
+    Route::put('/admin/exchange-rates/{id}', [ExchangeRateController::class, 'update'])->middleware('permission:edit_rates');
 
-
-
-    Route::post('/admin/exchange-rates', [ExchangeRateController::class, 'store']);
-
-
-
-    Route::put('/admin/exchange-rates/{id}', [ExchangeRateController::class, 'update']);
-
-
-
-    Route::delete('/admin/exchange-rates/{id}', [ExchangeRateController::class, 'destroy']);
-
-
-
-    
-
-
+    Route::delete('/admin/exchange-rates/{id}', [ExchangeRateController::class, 'destroy'])->middleware('permission:edit_rates');
 
     // Warehouses Management
 
+    Route::get('/admin/warehouses', [warehousecontroller::class, 'getAdminWarehouses'])->middleware('permission:view_warehouses');
 
+    Route::post('/admin/warehouses', [warehousecontroller::class, 'store'])->middleware('permission:create_warehouses');
 
-    Route::get('/admin/warehouses', [warehousecontroller::class, 'getAdminWarehouses']);
+    Route::put('/admin/warehouses/{id}', [warehousecontroller::class, 'update'])->middleware('permission:edit_warehouses');
 
-
-
-    Route::post('/admin/warehouses', [warehousecontroller::class, 'store']);
-
-
-
-    Route::put('/admin/warehouses/{id}', [warehousecontroller::class, 'update']);
-
-
-
-    Route::delete('/admin/warehouses/{id}', [warehousecontroller::class, 'destroy']);
-
-
-
-    
-
-
+    Route::delete('/admin/warehouses/{id}', [warehousecontroller::class, 'destroy'])->middleware('permission:delete_warehouses');
 
     // Notifications
 
+    Route::get('/admin/users-list', [NotificationController::class, 'getUsersList'])->middleware('permission:view_users');
 
+    Route::post('/admin/notifications/send', [NotificationController::class, 'sendNotification'])->middleware('permission:send_notifications');
 
-    Route::get('/admin/users-list', [NotificationController::class, 'getUsersList']);
+    Route::get('/admin/notifications/user/{id}/json', [NotificationController::class, 'getUserNotificationsJson'])->middleware('permission:view_notifications');
 
-
-
-    Route::post('/admin/notifications/send', [NotificationController::class, 'sendNotification']);
-
-
-
-    Route::get('/admin/notifications/user/{id}/json', [NotificationController::class, 'getUserNotificationsJson']);
 
 
 
@@ -411,9 +376,5 @@ Route::middleware(['auth:api'])->group(function () {
 });
 
 Route::post('/admin/roles', [RoleController::class, 'store'])->middleware('permission:manage_roles');
-Route::post('/delete_all', [ProductController::class, 'delete_all']);
-Route::get('/exportOrderToAmeenTxt/{id}', [OrderController::class, 'exportOrderToAmeenTxt']);
-Route::post('/exportMultipleOrdersToAmeenTxt', [OrderController::class, 'exportMultipleOrdersToAmeenTxt']);
-
 
 

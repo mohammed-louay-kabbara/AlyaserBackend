@@ -22,7 +22,7 @@ class AdminController extends Controller
 public function index()
 {
     $users_count = User::count();
-    $activated = User::where('activated', 0)->count(); // ربما تقصد غير المنشطين هنا؟
+    $activated = User::where('activated', 0)->where('forbidden', 0)->count(); // ربما تقصد غير المنشطين هنا؟
     $category = category::count();
     $Product_count = Product::where('quantity', '>=',1)->count();
     $Product_quantity = Product::where('quantity','<=', 10)->where('quantity', '>',0)->count();
@@ -89,13 +89,12 @@ public function bulkToggleStatus(Request $request, FcmService $fcmService)
     $query = User::whereIn('id', $request->ids);
         $users = $query->get();
 
+if($request->activated==true){
         $query->update([
-            'activated' => $request->activated
+            'activated' => true,
+            'Forbidden' => false
         ]);
-
-    // إرسال الإشعارات في حال التفعيل فقط
-
-        foreach ($users as $user) {
+                foreach ($users as $user) {
             if ($user->fcm_token) {
                 $fcmService->sendAndSaveNotification(
                     $user->id,
@@ -106,12 +105,23 @@ public function bulkToggleStatus(Request $request, FcmService $fcmService)
                 );
         }
     }
-
-    return response()->json([
+    
+    }else{
+            $query->update([
+                'activated' => false,
+                'Forbidden' => true
+            ]);
+        }
+            return response()->json([
         'success' => true,
         'message' => 'تم تحديث حالة المستخدمين بنجاح'
     ]);
-}
+
+    // إرسال الإشعارات في حال التفعيل فقط
+    }
+
+
+
 
 public function updateUserRole(Request $request, $id)
 {

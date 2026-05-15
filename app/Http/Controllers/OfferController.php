@@ -46,10 +46,10 @@ class OfferController extends Controller
         }
         
         $offers = $query->get();
-        $products = Product::with('category')->get();
+        // $products = Product::with('category')->get();
         return response()->json([
             'offers' => $offers,
-            'products' => $products
+            // 'products' => $products
         ]);
     }
 public function store(Request $request)
@@ -153,7 +153,8 @@ public function store(Request $request)
                 // Attach new products
                 foreach ($products as $item) {
                     $offer->products()->attach($item['product_id'], [
-                        'quantity' => $item['quantity']
+                        'quantity' => $item['quantity'],
+                        'purchase_type' => $item['purchase_type'] ?? 'طرد'
                     ]);
                 }
             }

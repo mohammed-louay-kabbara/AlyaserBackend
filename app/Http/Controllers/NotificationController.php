@@ -21,7 +21,7 @@ class NotificationController extends Controller
 
     public function getUsersList(Request $request)
     {
-        $users = User::select('id', 'name', 'phone')->latest()->get();
+        $users = User::select('id', 'name', 'phone', 'zone')->latest()->get();
         return response()->json($users);
     }
     
@@ -34,6 +34,7 @@ class NotificationController extends Controller
         'body' => 'required|string',
         'user_ids' => 'required|array',
         'user_ids.*' => 'exists:users,id',
+        'destination' => 'nullable|string',
     ]);
 
     // جلب المستخدمين المحددين فقط من قاعدة البيانات (مع التوكين الخاص بكل مستخدم)
@@ -49,7 +50,7 @@ class NotificationController extends Controller
                 $user->fcm_token,
                 $request->title,
                 $request->body,
-                '' // أو الوجهة التي تريدها
+                $request->destination ?? ''
             );
 
             if ($result) {
@@ -58,7 +59,7 @@ class NotificationController extends Controller
         }
     }
 
-    return redirect()->back()->with('success', "تم إرسال الإشعار بنجاح لـ {$successCount} مستخدمين.");
+    return response()->json(['message' => "تم إرسال الإشعار بنجاح لـ {$successCount} مستخدمين."], 200);
 }
     public function userNotifications($id)
     {

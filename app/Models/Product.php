@@ -8,7 +8,7 @@ use App\Models\exchange_rate;
 class Product extends Model
 {
     protected $fillable = [
-        'ameen_guid','name', 'ameen_code','retail_price','wholesale_price','quantity','category_id','image'
+        'ameen_guid','name','wholesale_quantity', 'ameen_code','retail_price','wholesale_price','quantity','category_id','image'
     ];
 
     /**
@@ -27,7 +27,7 @@ class Product extends Model
     public function offers()
     {
         return $this->belongsToMany(Offer::class, 'offer_products')
-                    ->withPivot('quantity');
+                    ->withPivot('quantity', 'purchase_type');
     }
 
     /**

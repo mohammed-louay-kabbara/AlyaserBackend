@@ -44,12 +44,6 @@ class PermissionsSeeder extends Seeder
             'category' => 'users'
         ]);
 
-        Permission::firstOrCreate(['name' => 'delete_users'], [
-            'label_ar' => 'حذف المستخدمين',
-            'label_en' => 'Delete Users',
-            'category' => 'users'
-        ]);
-
         Permission::firstOrCreate(['name' => 'manage_user_roles'], [
             'label_ar' => 'إدارة أدوار المستخدمين',
             'label_en' => 'Manage User Roles',
