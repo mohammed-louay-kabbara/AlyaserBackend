@@ -300,70 +300,142 @@ public function exportOrderToAmeenTxt($id)
 
     $lines = [];
 
+    // foreach ($order->items as $item) {
+
+    //     // ══════════════════════════════════════════
+    //     // الحالة 1: عرض — نفكك منتجاته ونصدّر كل واحد مستقل
+    //     // ══════════════════════════════════════════
+    //     if ($item->purchase_type === 'عرض' && $item->offer) {
+
+    //         foreach ($item->offer->products as $offerProduct) {
+
+    //             if (blank($offerProduct->ameen_guid)) {
+    //                 \Log::warning("Offer product ID {$offerProduct->id} has no ameen_guid — skipped");
+    //                 continue;
+    //             }
+
+    //             $pivotType = $offerProduct->pivot->purchase_type; // طرد أو قطعة
+    //             $pivotQty  = $offerProduct->pivot->quantity * $item->quantity; // كمية العرض × كمية الطلب
+
+    //             $unitNumber = $pivotType === 'طرد' ? 2 : 1;
+
+    //             // السعر حسب نوع الوحدة
+    //             $price = $pivotType === 'طرد'
+    //                 ? $offerProduct->wholesale_price
+    //                 : $offerProduct->retail_price;
+
+    //             if ($price <= 0) {
+    //                 \Log::warning("Offer product ID {$offerProduct->id} has zero price — Ameen will reject it");
+    //             }
+
+    //             $code     = $offerProduct->ameen_code ?? strtoupper($offerProduct->ameen_guid);
+    //             $qty      = number_format($pivotQty, 2, '.', '');
+    //             $priceStr = number_format($price,    2, '.', '');
+
+    //             $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
+    //         }
+
+    //         continue; // لا تكمل لباقي الكود لأن العرض تمت معالجته
+    //     }
+
+    //     // ══════════════════════════════════════════
+    //     // الحالة 2: منتج مباشر (قطعة أو طرد)
+    //     // ══════════════════════════════════════════
+    //     $product = $item->product;
+
+    //     if (blank($product?->ameen_guid)) {
+    //         \Log::warning("Product ID {$product?->id} has no ameen_guid — skipped");
+    //         continue;
+    //     }
+
+    //     $unitNumber = $item->purchase_type === 'طرد' ? 2 : 1;
+
+    //     $price = $item->unit_price > 0
+    //         ? $item->unit_price
+    //         : ($unitNumber === 2 ? $product->wholesale_price : $product->retail_price);
+
+    //     if ($price <= 0) {
+    //         \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
+    //     }
+
+    //     $code     = $product->ameen_code ?? strtoupper($product->ameen_guid);
+    //     $qty      = number_format($item->quantity, 2, '.', '');
+    //     $priceStr = number_format($price,          2, '.', '');
+
+    //     $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
+    // }
     foreach ($order->items as $item) {
 
-        // ══════════════════════════════════════════
-        // الحالة 1: عرض — نفكك منتجاته ونصدّر كل واحد مستقل
-        // ══════════════════════════════════════════
-        if ($item->purchase_type === 'عرض' && $item->offer) {
+    // ══════════════════════════════════════════
+    // الحالة 1: عرض
+    // ══════════════════════════════════════════
+    $isOffer = $item->purchase_type === 'عرض' 
+            || !is_null($item->offer_id)   // ← حماية إضافية
+            || is_null($item->product_id); // ← حماية إضافية
 
-            foreach ($item->offer->products as $offerProduct) {
+    if ($isOffer && $item->offer) {
 
-                if (blank($offerProduct->ameen_guid)) {
-                    \Log::warning("Offer product ID {$offerProduct->id} has no ameen_guid — skipped");
-                    continue;
-                }
+        foreach ($item->offer->products as $offerProduct) {
 
-                $pivotType = $offerProduct->pivot->purchase_type; // طرد أو قطعة
-                $pivotQty  = $offerProduct->pivot->quantity * $item->quantity; // كمية العرض × كمية الطلب
-
-                $unitNumber = $pivotType === 'طرد' ? 2 : 1;
-
-                // السعر حسب نوع الوحدة
-                $price = $pivotType === 'طرد'
-                    ? $offerProduct->wholesale_price
-                    : $offerProduct->retail_price;
-
-                if ($price <= 0) {
-                    \Log::warning("Offer product ID {$offerProduct->id} has zero price — Ameen will reject it");
-                }
-
-                $code     = $offerProduct->ameen_code ?? strtoupper($offerProduct->ameen_guid);
-                $qty      = number_format($pivotQty, 2, '.', '');
-                $priceStr = number_format($price,    2, '.', '');
-
-                $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
+            if (blank($offerProduct->ameen_guid)) {
+                \Log::warning("Offer product ID {$offerProduct->id} has no ameen_guid — skipped");
+                continue;
             }
 
-            continue; // لا تكمل لباقي الكود لأن العرض تمت معالجته
+            $pivotType = $offerProduct->pivot->purchase_type;
+            $pivotQty  = $offerProduct->pivot->quantity * $item->quantity;
+            $unitNumber = $pivotType === 'طرد' ? 2 : 1;
+
+            $price = $pivotType === 'طرد'
+                ? $offerProduct->wholesale_price
+                : $offerProduct->retail_price;
+
+            if ($price <= 0) {
+                \Log::warning("Offer product ID {$offerProduct->id} has zero price — Ameen will reject it");
+            }
+
+            $code     = $offerProduct->ameen_code ?? strtoupper($offerProduct->ameen_guid);
+            $qty      = number_format($pivotQty, 2, '.', '');
+            $priceStr = number_format($price,    2, '.', '');
+
+            $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
         }
 
-        // ══════════════════════════════════════════
-        // الحالة 2: منتج مباشر (قطعة أو طرد)
-        // ══════════════════════════════════════════
-        $product = $item->product;
-
-        if (blank($product?->ameen_guid)) {
-            \Log::warning("Product ID {$product?->id} has no ameen_guid — skipped");
-            continue;
-        }
-
-        $unitNumber = $item->purchase_type === 'طرد' ? 2 : 1;
-
-        $price = $item->unit_price > 0
-            ? $item->unit_price
-            : ($unitNumber === 2 ? $product->wholesale_price : $product->retail_price);
-
-        if ($price <= 0) {
-            \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
-        }
-
-        $code     = $product->ameen_code ?? strtoupper($product->ameen_guid);
-        $qty      = number_format($item->quantity, 2, '.', '');
-        $priceStr = number_format($price,          2, '.', '');
-
-        $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
+        continue;
     }
+
+    // ══════════════════════════════════════════
+    // الحالة 2: منتج مباشر
+    // ══════════════════════════════════════════
+    $product = $item->product;
+
+    // حماية — إذا لم يكن هناك منتج تخطّ السطر
+    if (is_null($product)) {
+        \Log::warning("OrderItem ID {$item->id} has no product and no offer — skipped");
+        continue;
+    }
+
+    if (blank($product->ameen_guid)) {
+        \Log::warning("Product ID {$product->id} has no ameen_guid — skipped");
+        continue;
+    }
+
+    $unitNumber = $item->purchase_type === 'طرد' ? 2 : 1;
+
+    $price = $item->unit_price > 0
+        ? $item->unit_price
+        : ($unitNumber === 2 ? $product->wholesale_price : $product->retail_price);
+
+    if ($price <= 0) {
+        \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
+    }
+
+    $code     = $product->ameen_code ?? strtoupper($product->ameen_guid);
+    $qty      = number_format($item->quantity, 2, '.', '');
+    $priceStr = number_format($price,          2, '.', '');
+
+    $lines[] = "{$code}\t{$qty}\t{$unitNumber}\t{$priceStr}";
+}
 
     if (empty($lines)) {
         return response()->json([
@@ -394,7 +466,11 @@ public function exportMultipleOrdersToAmeenTxt(Request $request)
     $orders = Order::with('items.product')->whereIn('id', $orderIds)->get();
     $lines = [];
 
+    
+
     foreach ($orders as $order) {
+        foreach ($order->items as $item) {
+    \Log::info("Item ID: {$item->id} | purchase_type: '{$item->purchase_type}' | product_id: {$item->product_id} | offer_id: {$item->offer_id}");
         foreach ($order->items as $item) {
             $product = $item->product;
 
