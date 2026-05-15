@@ -395,67 +395,67 @@ public function exportOrderToAmeenTxt($id)
         ]);
 }
 
-public function exportMultipleOrdersToAmeenTxt(Request $request)
-{
-    $orderIds = $request->input('order_ids', []);
+// public function exportMultipleOrdersToAmeenTxt(Request $request)
+// {
+//     $orderIds = $request->input('order_ids', []);
 
-    if (empty($orderIds)) {
-        return response()->json([
-            'error' => 'لم يتم تحديد أي طلبات للتصدير'
-        ], 422);
-    }
+//     if (empty($orderIds)) {
+//         return response()->json([
+//             'error' => 'لم يتم تحديد أي طلبات للتصدير'
+//         ], 422);
+//     }
 
-    $orders = Order::with('items.product')->whereIn('id', $orderIds)->get();
-    $lines = [];
+//     $orders = Order::with('items.product')->whereIn('id', $orderIds)->get();
+//     $lines = [];
 
     
 
-    foreach ($orders as $order) {
-        foreach ($order->items as $item) {
-    \Log::info("Item ID: {$item->id} | purchase_type: '{$item->purchase_type}' | product_id: {$item->product_id} | offer_id: {$item->offer_id}");
-        foreach ($order->items as $item) {
-            $product = $item->product;
+//     foreach ($orders as $order) {
+//         foreach ($order->items as $item) {
+//     \Log::info("Item ID: {$item->id} | purchase_type: '{$item->purchase_type}' | product_id: {$item->product_id} | offer_id: {$item->offer_id}");
+//         foreach ($order->items as $item) {
+//             $product = $item->product;
 
-            // ── حراسة البيانات ──────────────────────────────────────
-            if (blank($product->ameen_guid)) {
-                \Log::warning("Product ID {$product->id} has no ameen_guid — skipped");
-                continue;
-            }
+//             // ── حراسة البيانات ──────────────────────────────────────
+//             if (blank($product->ameen_guid)) {
+//                 \Log::warning("Product ID {$product->id} has no ameen_guid — skipped");
+//                 continue;
+//             }
 
-            // الأولوية: كود Ameen الرقمي، ثم GUID كاحتياط
-            $code = $product->ameen_code ?? strtoupper($product->ameen_guid);
+//             // الأولوية: كود Ameen الرقمي، ثم GUID كاحتياط
+//             $code = $product->ameen_code ?? strtoupper($product->ameen_guid);
 
-            // السعر: من سطر الطلب أولاً، ثم retail_price كاحتياط، ثم 1 لتجنب الرفض
-            $price = $item->price
-                  ?? $product->retail_price
-                  ?? 0;
+//             // السعر: من سطر الطلب أولاً، ثم retail_price كاحتياط، ثم 1 لتجنب الرفض
+//             $price = $item->price
+//                   ?? $product->retail_price
+//                   ?? 0;
 
-            if ($price <= 0) {
-                \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
-            }
+//             if ($price <= 0) {
+//                 \Log::warning("Product ID {$product->id} has zero price — Ameen will reject it");
+//             }
 
-            $qty      = number_format($item->quantity, 2, '.', '');
-            $priceStr = number_format($price,          2, '.', '');
+//             $qty      = number_format($item->quantity, 2, '.', '');
+//             $priceStr = number_format($price,          2, '.', '');
 
-            $lines[] = "{$code}\t{$qty}\t{$priceStr}";
-        }
-    }
+//             $lines[] = "{$code}\t{$qty}\t{$priceStr}";
+//         }
+//     }
 
-    if (empty($lines)) {
-        return response()->json([
-            'error' => 'لا توجد منتجات صالحة للتصدير. تأكد من وجود ameen_guid وسعر لكل منتج.'
-        ], 422);
-    }
+//     if (empty($lines)) {
+//         return response()->json([
+//             'error' => 'لا توجد منتجات صالحة للتصدير. تأكد من وجود ameen_guid وسعر لكل منتج.'
+//         ], 422);
+//     }
 
-    $content  = implode("\r\n", $lines) . "\r\n";
-    $fileName = "Ameen_Import_Multiple_Orders_" . time() . ".txt";
+//     $content  = implode("\r\n", $lines) . "\r\n";
+//     $fileName = "Ameen_Import_Multiple_Orders_" . time() . ".txt";
 
-    return response($content)
-        ->withHeaders([
-            'Content-Type'        => 'text/plain; charset=utf-8',
-            'Content-Disposition' => "attachment; filename={$fileName}",
-        ]);
-}}
+//     return response($content)
+//         ->withHeaders([
+//             'Content-Type'        => 'text/plain; charset=utf-8',
+//             'Content-Disposition' => "attachment; filename={$fileName}",
+//         ]);
+// }}
 public function store(Request $request)
 {
     $validator = Validator::make($request->all(), [
