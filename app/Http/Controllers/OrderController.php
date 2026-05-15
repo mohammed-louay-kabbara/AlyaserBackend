@@ -513,7 +513,7 @@ public function exportMultipleOrdersToAmeenTxt(Request $request)
             'Content-Type'        => 'text/plain; charset=utf-8',
             'Content-Disposition' => "attachment; filename={$fileName}",
         ]);
-}
+}}
 public function store(Request $request)
 {
     $validator = Validator::make($request->all(), [
