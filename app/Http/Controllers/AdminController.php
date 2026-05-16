@@ -19,8 +19,13 @@ use App\Services\FcmService; // استيراد الخدمة الجديدة
 
 class AdminController extends Controller
 {
+    public function admin()
+    {
+        
+    }
 public function index()
 {
+    
     $users_count = User::count();
     $activated = User::where('activated', 0)->where('forbidden', 0)->count(); // ربما تقصد غير المنشطين هنا؟
     $category = category::count();

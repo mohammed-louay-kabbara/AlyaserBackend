@@ -14,26 +14,32 @@ class RolesSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $adminRole = Role::firstOrCreate(['name' => 'admin'], [
+        $adminRole = Role::firstOrCreate(['name_en' => 'admin'], [
             'name_ar' => 'مدير النظام',
-            
+            'name_en' => 'admin',
+        ]);
+        $customerRole = Role::firstOrCreate(['name_en' => 'customer'], [
+            'name_ar' => 'زبون',
+            'name_en' => 'customer',
         ]);
 
-        $managerRole = Role::firstOrCreate(['name' => 'manager'], [
+        $managerRole = Role::firstOrCreate(['name_en' => 'manager'], [
             'name_ar' => 'مدير',
+            'name_en' => 'manager',
         ]);
 
-        $warehouseManagerRole = Role::firstOrCreate(['name' => 'warehouse_manager'], [
+        $warehouseManagerRole = Role::firstOrCreate(['name_en' => 'warehouse_manager'], [
             'name_ar' => 'مدير المستودع',
+            'name_en' => 'warehouse_manager',
+
         ]);
 
-        $driverRole = Role::firstOrCreate(['name' => 'driver'], [
+        $driverRole = Role::firstOrCreate(['name_en' => 'driver'], [
             'name_ar' => 'سائق',
+            'name_en' => 'driver',
         ]);
 
-        $customerRole = Role::firstOrCreate(['name' => 'customer'], [
-            'name_ar' => 'عميل',
-        ]);
+
 
         // Get all permissions
         $allPermissions = Permission::all()->pluck('id')->toArray();
