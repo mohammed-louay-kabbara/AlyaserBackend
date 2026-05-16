@@ -26,8 +26,8 @@ public function syncWithAmeen(Request $request)
             ->table('mt000')
             ->select(
                 'GUID', 
-                'Whole2',
-                'Half2',
+                'Retail2',
+                'Retail',
                 'Code',       // ← أضف هذا
                 'Name', 
                 'Unity',
@@ -43,13 +43,13 @@ public function syncWithAmeen(Request $request)
         $created = 0;
         foreach ($ameenProducts as $product) {
             
-    $finalPrice = $product->Half2 ?? 0;
+    $finalPrice = $product->Retail ?? 0;
 
-    if ($finalPrice == 0 && ($product->Whole2 > 0 && $product->Unit2Fact > 0)) {
-        $finalPrice = $product->Whole2 / $product->Unit2Fact;
+    if ($finalPrice == 0 && ($product->Retail2 > 0 && $product->Unit2Fact > 0)) {
+        $finalPrice = $product->Retail2 / $product->Unit2Fact;
     }
 
-    $wholesalePrice = $product->Whole2 ?? 0;
+    $wholesalePrice = $product->Retail2 ?? 0;
 
     // ── حساب الكمية بالطرد ──────────────────────────────────────
     $wholesaleQuantity = ($product->Unit2Fact > 0)
