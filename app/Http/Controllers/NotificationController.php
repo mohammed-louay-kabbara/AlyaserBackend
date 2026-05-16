@@ -119,7 +119,7 @@ class NotificationController extends Controller
                            ->update(['is_read'=> 1]);
           return response()->json(['message' => 'لقد عملية القراءة بنجاح']);
         }
-        public function read_Notificatio($id){
+        public function read_Notification($id){
          UserNotification::where('user_id', auth()->id())->where('id',$id)
                            ->update(['is_read'=> 1]);
           return response()->json(['message' => 'لقد عملية القراءة بنجاح']);
