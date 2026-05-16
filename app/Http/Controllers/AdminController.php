@@ -94,7 +94,7 @@ if($request->activated==true){
             'activated' => true,
             'Forbidden' => false
         ]);
-                foreach ($users as $user) {
+        foreach ($users as $user) {
             if ($user->fcm_token) {
                 $fcmService->sendAndSaveNotification(
                     $user->id,
@@ -186,12 +186,14 @@ public function getUsers(Request $request)
         $query->where('name', 'like', '%' . $request->search . '%');
     }
 
-    if ($request->has('activated') && $request->activated !== 'all') {
-        $query->where('activated', $request->activated);
-    }
-
-    if ($request->has('status') && $request->status === 'pending') {
-        $query->where('activated', 0);
+    if ($request->filled('status') && $request->status !== 'all') {
+        if ($request->status === 'active') {
+            $query->where('activated', 1);
+        } elseif ($request->status === 'pending') {
+            $query->where('activated', 0)->where('Forbidden', 0);
+        } elseif ($request->status === 'frozen') {
+            $query->where('activated', 0)->where('Forbidden', 1);
+        }
     }
 
     $users = $query->latest()->paginate($perPage);

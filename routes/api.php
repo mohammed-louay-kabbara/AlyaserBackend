@@ -91,6 +91,7 @@ Route::get('addproduct', [ProductController::class,'addproduct']);
 Route::post('fcm_token', [AuthController::class,'fcm_token']);
 Route::post('sendPushNotification', [NotificationController::class,'sendPushNotification']);
 Route::get('read_all', [NotificationController::class,'read_all']);
+Route::post('read_Notification/{id}', [NotificationController::class,'read_Notification']);
 Route::get('my_Notification',[NotificationController::class,'my_Notification']);
 Route::get('category_search/{id}',[ProductController::class,'category_search']);
 Route::get('getSearchScreenData',[ProductController::class,'getSearchScreenData']);

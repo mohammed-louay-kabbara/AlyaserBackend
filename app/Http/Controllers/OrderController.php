@@ -188,10 +188,12 @@ public function get_order(Request $request)
     $products = Product::select('id', 'name')->get();
     // جلب الطلبات مع بيانات الزبون لتجنب مشكلة (N+1 Queries)
     $query = Order::with('user')->orderBy('created_at', 'desc');
-    // 1. البحث باستخدام اسم الزبون
     if ($request->filled('search')) {
-        $query->whereHas('user', function ($q) use ($request) {
-            $q->where('name', 'like', '%' . $request->search . '%');
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->whereHas('user', function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', '%' . $search . '%');
+            })->orWhere('order_number', 'like', '%' . $search . '%');
         });
     }
     // 2. الفرز باستخدام التاريخ
@@ -810,8 +812,11 @@ public function getAdminOrders(Request $request)
     $perPage = $request->input('per_page', 10);
 
     if ($request->filled('search')) {
-        $query->whereHas('user', function ($q) use ($request) {
-            $q->where('name', 'like', '%' . $request->search . '%');
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->whereHas('user', function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', '%' . $search . '%');
+            })->orWhere('order_number', 'like', '%' . $search . '%');
         });
     }
 

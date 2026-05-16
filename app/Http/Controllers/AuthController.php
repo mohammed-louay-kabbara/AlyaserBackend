@@ -167,29 +167,29 @@ public function login_admin(Request $request)
         return response()->json(['message' => 'تم التحديث بنجاح', 'user' => $user], 200);
     }
 
-    public function activated($id, FcmService $fcmService) // حقن الخدمة هنا
-    {
-        $user = User::find($id);
+    // public function activated($id, FcmService $fcmService) // حقن الخدمة هنا
+    // {
+    //     $user = User::find($id);
 
-        if (!$user) {
-            return response()->json(['message' => 'المستخدم غير موجود'], 404);
-        }
+    //     if (!$user) {
+    //         return response()->json(['message' => 'المستخدم غير موجود'], 404);
+    //     }
 
-        $user->update(['activated' => 1]);
+    //     $user->update(['activated' => 1]);
 
-        // إرسال الإشعار باستخدام الخدمة
-        if ($user->fcm_token) {
-            $fcmService->sendAndSaveNotification(
-                $user->id,
-                $user->fcm_token, 
-                'تم تفعيل حسابك! 🎉', 
-                'أهلاً بك في تطبيق الياسر، تم قبول طلب انضمامك بنجاح.',
-                'home'
-            );
-        }
+    //     // إرسال الإشعار باستخدام الخدمة
+    //     if ($user->fcm_token) {
+    //         $fcmService->sendAndSaveNotification(
+    //             $user->id,
+    //             $user->fcm_token, 
+    //             'تم تفعيل حسابك! 🎉', 
+    //             'أهلاً بك في تطبيق الياسر، تم قبول طلب انضمامك بنجاح.',
+    //             'home'
+    //         );
+    //     }
 
-        return response()->json(['message' => 'تم تنشيط الحساب بنجاح'], 200);
-    }
+    //     return response()->json(['message' => 'تم تنشيط الحساب بنجاح'], 200);
+    // }
     public function logout()
     {
         auth()->logout();
