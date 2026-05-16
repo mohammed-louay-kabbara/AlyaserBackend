@@ -26,14 +26,15 @@ public function syncWithAmeen(Request $request)
             ->table('mt000')
             ->select(
                 'GUID', 
+                'Whole2',
+                'Half2',
                 'Code',       // ← أضف هذا
                 'Name', 
                 'Unity',
                 'Unit2',
                 'Unit2Fact',
                 'Qty',
-                'LastPrice',
-                'LastPrice2'
+
             )
             ->where('bHide', 0)
             ->get();
@@ -42,17 +43,13 @@ public function syncWithAmeen(Request $request)
         $created = 0;
         foreach ($ameenProducts as $product) {
             
-    $finalPrice = $product->LastPrice ?? 0;
+    $finalPrice = $product->Half2 ?? 0;
 
-    if ($finalPrice == 0 && ($product->LastPrice2 > 0 && $product->Unit2Fact > 0)) {
-        $finalPrice = $product->LastPrice2 / $product->Unit2Fact;
+    if ($finalPrice == 0 && ($product->Whole2 > 0 && $product->Unit2Fact > 0)) {
+        $finalPrice = $product->Whole2 / $product->Unit2Fact;
     }
 
-    $wholesalePrice = $product->LastPrice2 ?? 0;
-    
-    if ($wholesalePrice == 0 && $finalPrice > 0) {
-        $wholesalePrice = $finalPrice;
-    }
+    $wholesalePrice = $product->Whole2 ?? 0;
 
     // ── حساب الكمية بالطرد ──────────────────────────────────────
     $wholesaleQuantity = ($product->Unit2Fact > 0)
@@ -104,7 +101,7 @@ public function syncWithAmeen(Request $request)
 
         return response()->json([
             'status'  => 'success',
-            'message' => "تمت المزامنة بنجاح باستخدام حقول LastPrice",
+            'message' => "تمت المزامنة بنجاح ",
             'counts'  => ['new' => $created, 'updated' => $updated]
         ]);
 
